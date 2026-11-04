@@ -5,3 +5,13 @@
   --color-secondary: #018790;
   --color-thirdnary: #00b7b5;
 }
+
+@layer base {
+  html {
+    font-size: clamp(12px, 1vw, 24px);
+  }
+
+  * {
+    font-family: "Poppins", sans-serif;
+  }
+}
