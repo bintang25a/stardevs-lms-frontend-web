@@ -5,10 +5,8 @@ import message from "../_utilities/errorMessage";
 export const login = async (data) => {
   try {
     const response = await API.post("/login", data);
-    const token = response.data.token;
-    const user = response.data.user;
-
-    console.log(response.data);
+    const token = response.data.access_token;
+    const user = response.data.data;
 
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
@@ -18,6 +16,31 @@ export const login = async (data) => {
     console.log(error);
     throw message(error);
   }
+};
+
+let profilePromise = null;
+
+export const profile = async () => {
+  if (profilePromise) {
+    return profilePromise;
+  }
+
+  profilePromise = (async () => {
+    try {
+      const response = await API.get("/user");
+      const user = response.data.user;
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      return user;
+    } catch (error) {
+      throw message(error);
+    } finally {
+      profilePromise = null;
+    }
+  })();
+
+  return profilePromise;
 };
 
 // Fungsi Validasi token

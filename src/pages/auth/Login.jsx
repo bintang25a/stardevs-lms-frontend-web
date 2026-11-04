@@ -5,15 +5,20 @@ import {
   FaPaperPlane,
 } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { useState } from "react";
+import { login } from "../../_services/auth";
 
 export default function Login() {
+  const { isLoading, setIsLoading } = useOutletContext();
+  const navigate = useNavigate();
+
+  const [message, setMessage] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [formData, setFormData] = useState({
     login: "",
     password: "",
-    role: "",
+    requested_role: "",
   });
 
   const handleChange = (e) => {
@@ -26,7 +31,31 @@ export default function Login() {
   };
 
   const handleSubmit = async () => {
-    console.log(formData);
+    if (!formData.login) {
+      return setMessage("Please fill login field!");
+    }
+
+    if (!formData.password) {
+      return setMessage("Please fill password field!");
+    }
+
+    if (!formData.requested_role) {
+      return setMessage("Please select role!");
+    }
+
+    try {
+      setIsLoading(true);
+      setMessage("");
+
+      await login(formData);
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.log(error);
+      setMessage("Email, NIM, Password or Role invalid");
+
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,6 +101,9 @@ export default function Login() {
             "flex flex-col justify-start items-start gap-2",
           )}
         >
+          {message && (
+            <span className={cn("text-sm text-red-600")}>{message}</span>
+          )}
           <div className={cn("w-full", "flex flex-col")}>
             <label
               htmlFor="login"
@@ -149,10 +181,10 @@ export default function Login() {
               Role
             </label>
             <select
-              name="role"
-              id="role"
+              name="requested_role"
+              id="requested_role"
               onChange={handleChange}
-              value={formData?.role}
+              value={formData?.requested_role}
               className={cn(
                 "w-full",
                 "box-border border border-gray-300 rounded-sm",
@@ -186,6 +218,7 @@ export default function Login() {
         <section className="w-full">
           <button
             onClick={handleSubmit}
+            disabled={isLoading}
             className={cn(
               "w-full",
               "flex justify-center items-center gap-2",
@@ -193,6 +226,7 @@ export default function Login() {
               "p-2 rounded-md",
               "text-xl text-white font-bold",
               "cursor-pointer hover:scale-105 active:scale-95 transition-all",
+              "disabled:opacity-50 disabled:cursor-default",
             )}
           >
             <FaPaperPlane /> Login

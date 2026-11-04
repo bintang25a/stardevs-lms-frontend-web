@@ -6,9 +6,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AuthLayout />}>
+        <Route element={<AuthLayout />}>
           <Route path="login" element={<Login />} />
         </Route>
+
+        <Route path="/" element={<header>Haloo</header>}></Route>
       </Routes>
     </BrowserRouter>
   );
