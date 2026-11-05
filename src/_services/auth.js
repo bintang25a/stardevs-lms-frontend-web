@@ -1,12 +1,14 @@
 import API from "../_api";
 import message from "../_utilities/errorMessage";
 
+let profilePromise = null;
+
 // Fungsi Login
 export const login = async (data) => {
   try {
-    const response = await API.post("/login", data);
-    const token = response.data.access_token;
-    const user = response.data.data;
+    const { data: response } = await API.post("/login", data);
+    const token = response.access_token;
+    const user = response.data;
 
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
@@ -18,7 +20,16 @@ export const login = async (data) => {
   }
 };
 
-let profilePromise = null;
+export const register = async (data) => {
+  try {
+    const { data: response } = await API.post("/register", data);
+
+    return response?.message;
+  } catch (error) {
+    console.log(error);
+    throw message(error);
+  }
+};
 
 export const profile = async () => {
   if (profilePromise) {
@@ -27,8 +38,8 @@ export const profile = async () => {
 
   profilePromise = (async () => {
     try {
-      const response = await API.get("/user");
-      const user = response.data.user;
+      const { data: response } = await API.get("/user");
+      const user = response.data;
 
       localStorage.setItem("user", JSON.stringify(user));
 

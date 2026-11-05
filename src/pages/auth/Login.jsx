@@ -6,7 +6,7 @@ import {
 } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { login } from "../../_services/auth";
 
 export default function Login() {
@@ -18,7 +18,7 @@ export default function Login() {
   const [formData, setFormData] = useState({
     login: "",
     password: "",
-    requested_role: "",
+    requested_role: "praktikan",
   });
 
   const handleChange = (e) => {
@@ -51,19 +51,34 @@ export default function Login() {
 
       navigate("/", { replace: true });
     } catch (error) {
-      console.log(error);
-      setMessage("Email, NIM, Password or Role invalid");
-
+      setMessage(error);
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSubmit();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+
+    // eslint-disable-next-line
+  }, [formData]);
 
   return (
     <div
       className={cn(
         "h-full w-1/2",
         "flex flex-col justify-center items-start gap-8",
-        "p-32",
+        "p-32"
       )}
     >
       <header
@@ -71,7 +86,7 @@ export default function Login() {
           "w-full",
           "flex items-center gap-1",
           "hover:scale-105 hover:border-b hover:border-b-primary hover:pb-1",
-          "transition-all",
+          "transition-all"
         )}
       >
         <div
@@ -79,7 +94,7 @@ export default function Login() {
             "bg-linear-to-b from-thirdnary to-primary",
             "text-white",
             "flex justify-center items-center",
-            "p-1 rounded-lg",
+            "p-1 rounded-lg"
           )}
         >
           <FaGraduationCap size={40} />
@@ -98,7 +113,7 @@ export default function Login() {
         <section
           className={cn(
             "w-full",
-            "flex flex-col justify-start items-start gap-2",
+            "flex flex-col justify-start items-start gap-2"
           )}
         >
           {message && (
@@ -125,7 +140,7 @@ export default function Login() {
                 "p-2 outline-none transition-all",
                 "text-sm text-gray-900 font-normal",
                 "focus:border-primary focus:ring-1 focus:ring-primary focus:ring-rounded-sm",
-                "hover:shadow-sm hover:shadow-primary",
+                "hover:shadow-sm hover:shadow-primary"
               )}
             />
           </div>
@@ -140,7 +155,7 @@ export default function Login() {
               className={cn(
                 "w-full",
                 "flex",
-                "hover:shadow-sm hover:shadow-primary",
+                "hover:shadow-sm hover:shadow-primary"
               )}
             >
               <input
@@ -156,7 +171,7 @@ export default function Login() {
                   "p-2 outline-none transition-all",
                   "text-sm text-gray-900 font-normal",
                   "box-border border border-gray-300 rounded-sm",
-                  "focus:border-primary focus:ring-1 focus:ring-primary focus:ring-rounded-sm",
+                  "focus:border-primary focus:ring-1 focus:ring-primary focus:ring-rounded-sm"
                 )}
               />
               <span
@@ -164,7 +179,7 @@ export default function Login() {
                   "flex-5",
                   "flex justify-center items-center",
                   "box-border border border-gray-300 p-1",
-                  "cursor-pointer hover:text-primary",
+                  "cursor-pointer hover:text-primary"
                 )}
                 onClick={() => setIsVisible(!isVisible)}
                 title={isVisible ? "Hide" : "Show"}
@@ -191,13 +206,12 @@ export default function Login() {
                 "p-2 outline-none transition-all",
                 "text-sm text-gray-900 font-normal cursor-pointer",
                 "focus:border-primary focus:ring-1 focus:ring-primary focus:ring-rounded-sm",
-                "hover:shadow-sm hover:shadow-primary",
+                "hover:shadow-sm hover:shadow-primary"
               )}
             >
-              <option value="">Select your role</option>
-              <option value="admin">Admin</option>
-              <option value="asisten">Asisten</option>
               <option value="praktikan">Praktikan</option>
+              <option value="asisten">Asisten</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
         </section>
@@ -226,7 +240,7 @@ export default function Login() {
               "p-2 rounded-md",
               "text-xl text-white font-bold",
               "cursor-pointer hover:scale-105 active:scale-95 transition-all",
-              "disabled:opacity-50 disabled:cursor-default",
+              "disabled:opacity-50 disabled:cursor-default"
             )}
           >
             <FaPaperPlane /> Login
