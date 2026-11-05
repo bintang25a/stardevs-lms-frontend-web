@@ -44,7 +44,13 @@ export default function AuthLayout() {
   }, [navigate]);
 
   return (
-    <div className={cn("h-screen w-screen", "flex")}>
+    <div
+      className={cn(
+        "h-screen w-screen",
+        "flex flex-col-reverse xl:flex-row",
+        "overflow-y-auto"
+      )}
+    >
       {!isInit && <Information />}
       {!isInit && <Outlet context={{ isLoading, setIsLoading }} />}
 

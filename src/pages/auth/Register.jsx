@@ -88,9 +88,9 @@ export default function Register() {
   return (
     <div
       className={cn(
-        "h-full w-1/2",
+        "h-full w-full xl:w-1/2",
         "flex flex-col justify-center items-start gap-8",
-        "p-32"
+        "p-8 sm:p-16 xl:p-32"
       )}
     >
       <header
