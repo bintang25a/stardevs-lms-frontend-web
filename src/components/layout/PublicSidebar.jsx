@@ -33,15 +33,15 @@ export default function PublicSidebar({
   return (
     <aside
       className={cn(
-        "w-1/2 h-full",
+        "w-1/2 h-full z-50",
         "fixed top-0",
         "bg-secondary",
         "transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
         "px-2 pt-16",
         "xl:static xl:translate-x-0",
-        "xl:min-w-fit xl:w-1/5",
-        "xl:p-4"
+        "xl:min-w-fit xl:w-1/6",
+        "xl:p-4",
       )}
     >
       <button
@@ -53,7 +53,7 @@ export default function PublicSidebar({
           "text-white",
           "hover:text-primary active:scale-90 transition-all",
           "cursor-pointer",
-          "xl:hidden"
+          "xl:hidden",
         )}
       >
         <FaXmark />
@@ -64,7 +64,7 @@ export default function PublicSidebar({
           "flex flex-col gap-1",
           "border-t border-white ",
           "p-2",
-          "xl:p-0 xl:border-0"
+          "xl:p-0 xl:border-0",
         )}
       >
         <li>
@@ -72,10 +72,10 @@ export default function PublicSidebar({
             to={"/"}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4",
+              "p-4 relative",
               "text-xl text-white",
               "hover:bg-thirdnary rounded-full transition-all",
-              "active:scale-95 active:bg-thirdnary"
+              "active:scale-95 active:bg-thirdnary",
             )}
           >
             <FaHouse size={24} />
@@ -90,7 +90,7 @@ export default function PublicSidebar({
               "p-4",
               "text-xl text-white",
               "hover:bg-thirdnary rounded-full transition-all",
-              "active:scale-95 active:bg-thirdnary"
+              "active:scale-95 active:bg-thirdnary",
             )}
           >
             <FaChalkboard size={24} />
@@ -105,7 +105,7 @@ export default function PublicSidebar({
               "p-4",
               "text-xl text-white",
               "hover:bg-thirdnary rounded-full transition-all",
-              "active:scale-95 active:bg-thirdnary"
+              "active:scale-95 active:bg-thirdnary",
             )}
           >
             <FaUser size={24} />
@@ -126,7 +126,7 @@ export default function PublicSidebar({
           "bg-red-600 py-2 px-6 rounded-2xl shadow-sm shadow-gray-300",
           "hover:cursor-pointer hover:scale-105 hover:bg-red-700 transition-all",
           "active:bg-red-700 active:scale-95",
-          "disabled:opacity-60"
+          "disabled:opacity-60",
         )}
       >
         <FaDoorOpen />

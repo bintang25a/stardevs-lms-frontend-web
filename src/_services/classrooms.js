@@ -18,7 +18,7 @@ export const showClassroom = async (id) => {
 
 export const createClassroom = async (data) => {
   try {
-    const response = await API.post("/classrooms", data);
+    const { data: response } = await API.post("/classrooms", data);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -28,7 +28,7 @@ export const createClassroom = async (data) => {
 
 export const updateClassroom = async (id, data) => {
   try {
-    const response = await API.post(`classrooms/${id}`, data);
+    const { data: response } = await API.post(`classrooms/${id}`, data);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -38,7 +38,7 @@ export const updateClassroom = async (id, data) => {
 
 export const deleteClassroom = async (id) => {
   try {
-    const response = await API.delete(`classrooms/${id}`);
+    const { data: response } = await API.delete(`classrooms/${id}`);
     return response.data;
   } catch (error) {
     console.log(error);

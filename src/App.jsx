@@ -18,7 +18,8 @@ export default function App() {
 
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<h1>Keren</h1>}></Route>
-          <Route path="classrooms" element={<Classrooms />}></Route>
+          <Route path="classrooms" element={<Classrooms />} />
+          <Route path="classrooms/:id" element={<h1>Cape</h1>} />
         </Route>
         <Route path="/admin" element={<header>Haloo</header>}></Route>
       </Routes>

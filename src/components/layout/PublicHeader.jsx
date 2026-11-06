@@ -1,17 +1,20 @@
-import { FaBars, FaRotateLeft } from "react-icons/fa6";
+import { FaArrowLeft, FaBars, FaRotateLeft } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
+import { useNavigate } from "react-router-dom";
 
 export default function PublicHeader({
   user,
   handleRefresh,
   handleToggleMenu,
 }) {
+  const navigate = useNavigate();
+
   return (
     <header
       className={cn(
         "w-full",
         "px-4 py-2 shadow-sm shadow-gray-500",
-        "flex justify-between items-center"
+        "flex justify-between items-center",
       )}
     >
       <div
@@ -19,7 +22,7 @@ export default function PublicHeader({
           "w-fit h-fit",
           "p-1",
           "box-border border rounded-sm border-primary",
-          "flex gap-2"
+          "flex gap-2",
         )}
       >
         <button
@@ -29,10 +32,23 @@ export default function PublicHeader({
             "text-primary",
             "hover:text-thirdnary active:scale-95",
             "transition-all",
-            "cursor-pointer"
+            "cursor-pointer",
+            "xl:hidden",
           )}
         >
           <FaBars size={24} />
+        </button>
+        <button
+          title="Back"
+          onClick={() => navigate(-1)}
+          className={cn(
+            "text-primary",
+            "hover:text-thirdnary active:scale-95",
+            "transition-all",
+            "cursor-pointer",
+          )}
+        >
+          <FaArrowLeft size={24} />
         </button>
         <button
           title="Refresh"
@@ -41,7 +57,7 @@ export default function PublicHeader({
             "text-primary",
             "hover:text-thirdnary active:scale-95",
             "transition-all",
-            "cursor-pointer"
+            "cursor-pointer",
           )}
         >
           <FaRotateLeft size={24} />
@@ -52,7 +68,7 @@ export default function PublicHeader({
         className={cn(
           "w-fit h-fit",
           "p-1",
-          "flex justify-center items-center gap-2"
+          "flex justify-center items-center gap-2",
         )}
       >
         <div className={cn("w-fit", "flex flex-col")}>
