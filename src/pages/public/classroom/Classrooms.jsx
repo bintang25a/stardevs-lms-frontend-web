@@ -31,9 +31,9 @@ export default function Classrooms() {
       setIsLoading(true);
 
       try {
-        const classroomsData = await getClassrooms();
+        const res = await getClassrooms();
 
-        setClassrooms(classroomsData.data);
+        setClassrooms(res?.data);
       } catch (error) {
         console.log(error);
       } finally {

@@ -33,8 +33,7 @@ export default function PublicSidebar({
   return (
     <aside
       className={cn(
-        "w-1/2 h-full z-50",
-        "fixed top-0",
+        "w-1/2 h-full fixed top-0 z-50 xl:z-10",
         "bg-secondary",
         "transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
@@ -67,7 +66,7 @@ export default function PublicSidebar({
           "xl:p-0 xl:border-0",
         )}
       >
-        <li>
+        <li onClick={handleToggleMenu}>
           <Link
             to={"/"}
             className={cn(
@@ -82,7 +81,7 @@ export default function PublicSidebar({
             <span>Dashboard</span>
           </Link>
         </li>
-        <li>
+        <li onClick={handleToggleMenu}>
           <Link
             to={"/classrooms"}
             className={cn(
@@ -97,7 +96,7 @@ export default function PublicSidebar({
             <span>Classroom</span>
           </Link>
         </li>
-        <li>
+        <li onClick={handleToggleMenu}>
           <Link
             to={"/profile"}
             className={cn(

@@ -7,6 +7,7 @@ import PublicHeader from "../components/layout/PublicHeader";
 import PublicSidebar from "../components/layout/PublicSidebar";
 
 export default function PublicLayout() {
+  const [isInit, setIsInit] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState({});
@@ -30,6 +31,7 @@ export default function PublicLayout() {
       } finally {
         timeout = setTimeout(() => {
           setIsLoading(false);
+          setIsInit(false);
         }, 500);
       }
     };
@@ -66,7 +68,7 @@ export default function PublicLayout() {
           setIsLoading={setIsLoading}
         />
 
-        <Outlet context={{ isLoading, setIsLoading, user }} />
+        {!isInit && <Outlet context={{ isLoading, setIsLoading, user }} />}
       </main>
 
       <LoadingBar isLoading={isLoading} />

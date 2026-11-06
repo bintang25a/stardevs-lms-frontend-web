@@ -10,6 +10,40 @@ export default function ClassroomCard({
   handleEdit,
   handleDelete,
 }) {
+  const currentUrl = window.location.href;
+
+  const handleCopyUrl = (id) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(currentUrl + id)
+        .catch((err) => console.error("Gagal menyalin: ", err));
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = currentUrl + id;
+
+      textArea.style.position = "fixed";
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.opacity = "0";
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        const successful = document.execCommand("copy");
+
+        console.log(successful);
+      } catch (err) {
+        console.error("Gagal menjalankan fallback copy: ", err);
+      } finally {
+        handleMenuOpen();
+      }
+
+      document.body.removeChild(textArea);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -111,6 +145,18 @@ export default function ClassroomCard({
             )}
           >
             Left Classroom
+          </button>
+          <button
+            onClick={() => handleCopyUrl(`/${data?.id}`)}
+            title="Left Classroom"
+            className={cn(
+              "px-2 py-1",
+              "hover:cursor-pointer hover:bg-gray-100 transition-all",
+              "w-full",
+              "text-left",
+            )}
+          >
+            Copy Link
           </button>
         </div>
       </div>
