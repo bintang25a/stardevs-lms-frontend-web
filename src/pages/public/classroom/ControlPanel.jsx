@@ -11,7 +11,7 @@ export default function ControlPanel() {
     <div
       className={cn(
         "w-full h-full p-4",
-        "flex flex-wrap gap-2 xl:gap-3 content-start",
+        "flex flex-wrap gap-2 xl:gap-3 content-start items-stretch",
       )}
     >
       <ClassroomHeader classroom={classroom} />

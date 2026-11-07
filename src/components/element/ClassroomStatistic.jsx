@@ -38,8 +38,8 @@ export default function ClassroomStatistic({ classroom }) {
     <div
       className={cn(
         "flex-1",
-        "w-fit min-w-fit xl:min-w-1/2 h-fit min-h-40 xl:min-h-60 border border-primary rounded-md p-4",
-        "grid grid-cols-2 items-start justify-start gap-4",
+        "w-fit min-w-fit xl:min-w-1/2 h-auto min-h-40 xl:min-h-60 border border-primary rounded-md p-4",
+        "grid grid-cols-2 items-stretch justify-start gap-4",
       )}
     >
       {statistics.map((item, i) => (
@@ -47,7 +47,7 @@ export default function ClassroomStatistic({ classroom }) {
           key={i}
           className={cn(
             "flex-1 rounded-md p-4 xl:p-2",
-            "flex flex-col gap-4 xl:gap-2",
+            "flex flex-col gap-4 xl:gap-2 justify-center items-center",
             "relative transition-all",
             `${item.color}`,
             "hover:scale-105 hover:shadow hover:shadow-gray-600",

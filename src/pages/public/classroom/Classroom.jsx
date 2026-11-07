@@ -84,7 +84,6 @@ export default function Classroom() {
         isEdit={false}
         data={null}
         classroom={classroom}
-        sections={classroom?.sections}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -95,7 +94,6 @@ export default function Classroom() {
         isEdit={false}
         data={null}
         classroom={classroom}
-        sections={classroom?.sections}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -106,7 +104,6 @@ export default function Classroom() {
         isEdit={false}
         data={null}
         classroom={classroom}
-        sections={classroom?.sections}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}

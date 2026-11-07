@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { cn } from "../../_utilities/cn";
 import { FaEllipsisVertical } from "react-icons/fa6";
+import { isoToSchedule } from "../../_utilities/isoToSchedule";
 
 export default function ClassroomCard({
   data,
@@ -65,7 +66,7 @@ export default function ClassroomCard({
       >
         <h3 className={cn("font-semibold truncate")}>{data?.name}</h3>
         <span className={cn("font-light text-sm")}>
-          Schedule: {data.schedule ?? "-"}
+          Schedule: {isoToSchedule(data.schedule)}
         </span>
       </Link>
 

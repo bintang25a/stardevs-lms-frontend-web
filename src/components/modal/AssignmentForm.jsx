@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { cn } from "../../_utilities/cn";
-import { FaLink, FaXmark } from "react-icons/fa6";
-import { createMaterial } from "../../_services/material";
+import { FaChevronDown, FaLink, FaXmark } from "react-icons/fa6";
+import { createAssignment } from "../../_services/assignments";
 
 export default function AssignmentForm({
   isOpen,
@@ -17,31 +17,53 @@ export default function AssignmentForm({
     description: data?.description ?? "",
     started_at: data?.started_at ?? "",
     ended_at: data?.ended_at ?? "",
-    allow_overtime: data?.allow_overtime ?? false,
-    files: [{ name: "", file: null, url: "", type: "" }],
+    allow_overtime: data?.allow_overtime ?? "0",
+    files: [],
     classroom_id: data?.classroom_id ?? "",
     section_id: data?.section_id ?? "",
     order: data?.order ?? "",
     _method: isEdit && "PUT",
   };
 
-  const [files, setFiles] = useState([]);
+  const [showFiles, setShowFiles] = useState([]);
+  const [testCases, setTestCases] = useState([]);
+  const [answerKeys, setAnswerKeys] = useState([]);
+  const [openTrays, setOpenTrays] = useState([]);
   const [fileUrl, setFileUrl] = useState("");
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
 
   const sections = classroom?.sections || [];
+  const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (files) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: [...files],
+      const invalidFiles = [...files].filter(
+        (file) => file.size > MAX_FILE_SIZE,
+      );
+
+      if (invalidFiles.length > 0) {
+        return setMessage("Max File size 20 MB!");
+      }
+
+      const tempFiles = [...files].map((file) => ({
+        name: "",
+        file: file,
+        url: "",
+        type: "assignment",
       }));
 
-      setFiles((prev) => [...prev, ...[...files].map((item) => item?.name)]);
+      setFormData((prev) => ({
+        ...prev,
+        files: [...prev.files, ...tempFiles],
+      }));
+
+      setShowFiles([
+        ...formData.files.filter((file) => file.type === "assignment"),
+        ...tempFiles,
+      ]);
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -61,16 +83,10 @@ export default function AssignmentForm({
 
     Object.entries(fd).forEach(([key, value]) => {
       if (key === "files" && Array.isArray(value)) {
-        value.forEach((file) => {
-          if (file) {
-            payload.append("files[]", file);
-          }
-        });
-      } else if (key === "files_url" && Array.isArray(value)) {
-        value.forEach((url) => {
-          if (url) {
-            payload.append("files_url[]", url);
-          }
+        value.forEach((item, i) => {
+          Object.keys(item).forEach((subKey) => {
+            payload.append(`${key}[${i}][${subKey}]`, item[subKey]);
+          });
         });
       } else if (value !== null && value !== undefined && value !== false) {
         payload.append(key, value);
@@ -80,16 +96,16 @@ export default function AssignmentForm({
     try {
       setIsLoading(true);
 
-      const res = await createMaterial(payload);
+      const res = await createAssignment(payload);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
       setFormData(tempForm);
+      setShowFiles([]);
       setMessage("");
-      setFiles([]);
       onClose();
     } catch (error) {
       console.log(error);
-
+      console.log({ ...payload });
       setMessage(error);
     } finally {
       setIsLoading(false);
@@ -97,45 +113,65 @@ export default function AssignmentForm({
   };
 
   const handleAddUrl = () => {
-    if (!formData.files_url.includes(fileUrl)) {
-      formData.files_url.push(fileUrl);
+    const temps = formData.files;
+    const idx = temps.findIndex((temp) => temp.url === fileUrl);
 
-      setFiles([
-        ...formData.files_url,
-        ...formData.files.map((item) => item?.name),
+    if (idx === -1 && fileUrl !== "") {
+      const newUrl = {
+        name: "",
+        url: fileUrl,
+        type: "assignment",
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        files: [...prev.files, newUrl],
+      }));
+
+      setShowFiles([
+        ...formData.files.filter((file) => file.type === "assignment"),
+        newUrl,
       ]);
     }
 
     setFileUrl("");
   };
 
-  const handleRemoveFile = (name) => {
-    const tempUrl = formData.files_url;
-    const idxUrl = tempUrl.findIndex((temp) => temp === name);
-    const updateUrl =
-      idxUrl !== -1
-        ? [...tempUrl.slice(0, idxUrl), ...tempUrl.slice(idxUrl + 1)]
-        : tempUrl;
+  const handleRemoveFile = (data) => {
+    const tempFiles = formData.files;
 
-    const tempFile = formData.files;
-    const idxFile = tempFile.findIndex((temp) => temp.name === name);
-    const updateFile =
+    const idxFile = !data.file
+      ? tempFiles.findIndex(
+          (file) => file.url === data.url && file.type === data.type,
+        )
+      : tempFiles.findIndex(
+          (file) => file.file === data.file && file.type === data.type,
+        );
+
+    const updateFiles =
       idxFile !== -1
-        ? [...tempFile.slice(0, idxFile), ...tempFile.slice(idxFile + 1)]
-        : tempFile;
+        ? [...tempFiles.slice(0, idxFile), ...tempFiles.slice(idxFile + 1)]
+        : tempFiles;
 
-    setFiles([...updateUrl, ...updateFile.map((item) => item?.name)]);
+    setFormData((prev) => ({
+      ...prev,
+      files: [...updateFiles],
+    }));
 
-    setFormData({
-      ...formData,
-      files_url: [...updateUrl],
-      files: [...updateFile],
-    });
+    setShowFiles([...updateFiles.filter((file) => file.type === "assignment")]);
   };
 
   const onClose = () => {
     setModalOpen(null);
     setMessage("");
+  };
+
+  const handleOpenTrays = (i) => {
+    if (openTrays.includes(i)) {
+      setOpenTrays((prev) => [...prev.filter((j) => j !== i)]);
+    } else {
+      setOpenTrays((prev) => [...prev, i]);
+    }
   };
 
   if (!isOpen) return null;
@@ -279,7 +315,7 @@ export default function AssignmentForm({
                 "hover:scale-105 active:scale-95 transition-all cursor-pointer",
               )}
             >
-              Choose File
+              Add File
               <input
                 type="file"
                 name="files"
@@ -336,7 +372,7 @@ export default function AssignmentForm({
               "flex flex-wrap gap-1 justify-start items-center",
             )}
           >
-            {files.map((file, i) => (
+            {showFiles.map((file, i) => (
               <div
                 key={i}
                 className={cn(
@@ -347,7 +383,7 @@ export default function AssignmentForm({
                 )}
               >
                 <span className="text-black text-sm font-light truncate">
-                  {file}
+                  {!file.file ? file.url : file.file.name}
                 </span>
 
                 <button
@@ -390,13 +426,63 @@ export default function AssignmentForm({
           </select>
         </div>
 
-        <h2 className={cn("text-xl text-primary font-semibold")}>
-          Upload Answer Key (optional later)
-        </h2>
+        <div className="w-full flex flex-col justify-start items-start gap-2">
+          <h2
+            onClick={() => handleOpenTrays(1)}
+            className={cn(
+              "w-full",
+              "text-xl text-primary font-semibold",
+              "flex justify-between items-center",
+              "hover:bg-gray-300 cursor-pointer",
+            )}
+          >
+            <span>
+              Upload Answer Key{" "}
+              {answerKeys.length === 0 ? "(Optional)" : `${answerKeys.length}`}
+            </span>
+            <FaChevronDown size={32} />
+          </h2>
 
-        <h2 className={cn("text-xl text-primary font-semibold")}>
-          Upload Test Case (optional later)
-        </h2>
+          <div
+            className={cn(
+              "w-full overflow-hidden transition-all duration-300 ease-in-out",
+              openTrays.includes(1)
+                ? "max-h-125 opacity-100 py-2"
+                : "max-h-0 opacity-0 py-0",
+            )}
+          >
+            Container
+          </div>
+        </div>
+
+        <div className="w-full flex flex-col justify-start items-start gap-2">
+          <h2
+            onClick={() => handleOpenTrays(2)}
+            className={cn(
+              "w-full",
+              "text-xl text-primary font-semibold",
+              "flex justify-between items-center",
+              "hover:bg-gray-300 cursor-pointer",
+            )}
+          >
+            <span>
+              Upload Test Case{" "}
+              {testCases.length === 0 ? "(Optional)" : `${testCases.length}`}
+            </span>
+            <FaChevronDown size={32} />
+          </h2>
+
+          <div
+            className={cn(
+              "w-full overflow-hidden transition-all duration-300 ease-in-out",
+              openTrays.includes(2)
+                ? "max-h-125 opacity-100 py-2"
+                : "max-h-0 opacity-0 py-0",
+            )}
+          >
+            Container
+          </div>
+        </div>
 
         <div className={cn("w-full", "flex justify-end items-center gap-4")}>
           <button
