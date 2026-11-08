@@ -1,26 +1,59 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../../_utilities/cn";
-import { createSection } from "../../_services/sections";
+import {
+  createSection,
+  showSection,
+  updateSection,
+} from "../../_services/sections";
 
 export default function SectionForm({
+  id,
   isOpen,
-  isEdit = false,
-  data,
   classroom,
+  setEditId,
   setModalOpen,
   setIsLoading,
   setShowToast,
 }) {
   const tempForm = {
-    title: data?.title ?? "",
-    classroom_id: data?.classroom_id ?? "",
-    order: data?.order ?? "",
-    date: data?.date ?? "",
-    _method: data && "PUT",
+    title: "",
+    classroom_id: "",
+    order: "",
+    date: "",
   };
 
+  const [isFetching, setIsFetching] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setIsFetching(true);
+
+      try {
+        const { data } = await showSection(id);
+
+        setFormData({
+          ...formData,
+          title: data?.title,
+          classroom_id: data?.classroom_id,
+          order: data?.order,
+          date: data?.date ? res.data.date.split(" ")[0] : "",
+          _method: "PUT",
+        });
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+        setIsFetching(false);
+      }
+    };
+
+    if (id && isOpen) {
+      fetchData();
+    }
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,13 +74,13 @@ export default function SectionForm({
     const fd = {
       ...formData,
       classroom_id: String(classroom?.id),
-      order: Number(maxOrder) + 1,
+      order: id ? formData?.order : Number(maxOrder) + 1,
     };
 
     try {
       setIsLoading(true);
 
-      const res = await createSection(fd);
+      const res = id ? await updateSection(id, fd) : await createSection(fd);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
       setFormData(tempForm);
@@ -65,6 +98,8 @@ export default function SectionForm({
   const onClose = () => {
     setModalOpen(null);
     setMessage("");
+    setEditId(null);
+    setFormData(tempForm);
   };
 
   if (!isOpen) return null;
@@ -80,7 +115,7 @@ export default function SectionForm({
         )}
       >
         <h2 className={cn("text-xl text-primary font-semibold")}>
-          {isEdit ? "Edit Section" : "Create Section"}
+          {id ? "Edit Section" : "Create Section"}
         </h2>
 
         {message && (
@@ -101,12 +136,14 @@ export default function SectionForm({
             placeholder="Praktikum Pemrograman Berbasi Web"
             onChange={handleChange}
             value={formData.title}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -124,12 +161,14 @@ export default function SectionForm({
             id="date"
             onChange={handleChange}
             value={formData.date}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -148,14 +187,16 @@ export default function SectionForm({
           </button>
           <button
             onClick={handleSubmit}
+            disabled={isFetching}
             className={cn(
               "hover:bg-thirdnary active:bg-thirdnary transition-all",
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
               "text-lg text-primary font-medium",
+              "disabled:opacity-50",
             )}
           >
-            {isEdit ? "Save" : "Create"}
+            {id ? "Save" : "Create"}
           </button>
         </div>
       </div>

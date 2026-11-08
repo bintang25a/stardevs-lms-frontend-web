@@ -1,34 +1,72 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../../_utilities/cn";
 import { FaLink, FaXmark } from "react-icons/fa6";
-import { createMaterial } from "../../_services/material";
+import {
+  createMaterial,
+  showMaterial,
+  updateMaterial,
+} from "../../_services/material";
 
 export default function MaterialForm({
   isOpen,
-  isEdit = false,
-  data,
+  id,
   classroom,
+  setEditId,
   setModalOpen,
   setIsLoading,
   setShowToast,
 }) {
   const tempForm = {
-    title: data?.title ?? "",
-    description: data?.description ?? "",
+    title: "",
+    description: "",
     files: [],
     files_url: [],
-    classroom_id: data?.classroom_id ?? "",
-    section_id: data?.section_id ?? "",
-    order: data?.order ?? "",
-    _method: isEdit && "PUT",
+    classroom_id: "",
+    section_id: "",
+    order: "",
   };
 
+  const [isFetching, setIsFetching] = useState(false);
   const [files, setFiles] = useState([]);
   const [fileUrl, setFileUrl] = useState("");
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
 
-  const sections = classroom?.sections || [];
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setIsFetching(true);
+
+      try {
+        const { data } = await showMaterial(id);
+
+        setFormData({
+          ...formData,
+          title: data?.title,
+          description: data?.description || "",
+          classroom_id: data?.classroom_id,
+          section_id: data?.section_id || "",
+          order: data?.order,
+          files: [],
+          files_url: [...data?.files?.map((d) => d?.file_name)],
+          _method: "PUT",
+        });
+
+        setFiles([...data?.files?.map((d) => d?.file_name)]);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+        setIsFetching(false);
+      }
+    };
+
+    if (id && isOpen) {
+      fetchData();
+    }
+  }, [id]);
+
+  const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -54,7 +92,7 @@ export default function MaterialForm({
     const fd = {
       ...formData,
       classroom_id: String(classroom?.id),
-      order: 0,
+      order: id ? formData?.order : 0,
     };
 
     Object.entries(fd).forEach(([key, value]) => {
@@ -75,10 +113,14 @@ export default function MaterialForm({
       }
     });
 
+    console.log(fd);
+
     try {
       setIsLoading(true);
 
-      const res = await createMaterial(payload);
+      const res = id
+        ? await updateMaterial(id, payload)
+        : await createMaterial(payload);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
       setFormData(tempForm);
@@ -122,7 +164,7 @@ export default function MaterialForm({
         ? [...tempFile.slice(0, idxFile), ...tempFile.slice(idxFile + 1)]
         : tempFile;
 
-    setFiles([...updateUrl, ...updateFile.map((item) => item?.name)]);
+    setFiles([...updateUrl, ...updateFile?.map((item) => item?.name)]);
 
     setFormData({
       ...formData,
@@ -134,6 +176,8 @@ export default function MaterialForm({
   const onClose = () => {
     setModalOpen(null);
     setMessage("");
+    setEditId(null);
+    setFormData(tempForm);
   };
 
   if (!isOpen) return null;
@@ -150,7 +194,7 @@ export default function MaterialForm({
         )}
       >
         <h2 className={cn("text-xl text-primary font-semibold")}>
-          {isEdit ? "Edit Material" : "Create Material"}
+          {id ? "Edit Material" : "Create Material"}
         </h2>
 
         {message && (
@@ -171,12 +215,14 @@ export default function MaterialForm({
             placeholder="Materi Pertemuan 1"
             onChange={handleChange}
             value={formData.title}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -195,12 +241,14 @@ export default function MaterialForm({
             id="description"
             onChange={handleChange}
             value={formData.description}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -236,6 +284,7 @@ export default function MaterialForm({
                 id="files"
                 placeholder="Praktikum Pemrograman Berbasi Web"
                 onChange={handleChange}
+                disabled={isFetching}
                 className="hidden"
                 multiple
               />
@@ -257,12 +306,14 @@ export default function MaterialForm({
               placeholder="https://stardevs.my.id"
               onChange={(e) => setFileUrl(e.target.value)}
               value={fileUrl}
+              disabled={isFetching}
               className={cn(
                 "flex-1 min-w-6/10",
                 "bg-white border-b border-b-primary",
                 "p-2 rounded-t-md outline-none",
                 "text-sm text-primary font-normal",
                 "hover:shadow-sm hover:shadow-primary",
+                "disabled:opacity-50",
               )}
             />
 
@@ -323,12 +374,14 @@ export default function MaterialForm({
             id="section_id"
             onChange={handleChange}
             value={formData.section_id}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary cursor-pointer",
+              "disabled:opacity-50",
             )}
           >
             <option value="">Select Section (optional)</option>
@@ -354,14 +407,16 @@ export default function MaterialForm({
           </button>
           <button
             onClick={() => handleSubmit(formData, "create")}
+            disabled={isFetching}
             className={cn(
               "hover:bg-thirdnary active:bg-thirdnary transition-all",
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
               "text-lg text-primary font-medium",
+              "disabled:opacity-50",
             )}
           >
-            {isEdit ? "Save" : "Create"}
+            {id ? "Save" : "Create"}
           </button>
         </div>
       </div>

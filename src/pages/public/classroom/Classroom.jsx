@@ -29,6 +29,7 @@ export default function Classroom() {
   const [isInit, setIsInit] = useState(true);
   const [classroom, setClassroom] = useState(null);
   const [modalOpen, setModalOpen] = useState(null);
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => {
     const classroom_ids = user.classroom_ids || [];
@@ -60,7 +61,7 @@ export default function Classroom() {
     return isInit ? (
       <div className="h-full"></div>
     ) : (
-      <Outlet context={{ classroom, user, setModalOpen }} />
+      <Outlet context={{ classroom, user, setModalOpen, setEditId }} />
     );
   };
 
@@ -85,9 +86,9 @@ export default function Classroom() {
 
       <SectionForm
         isOpen={modalOpen === "section"}
-        isEdit={false}
-        data={null}
+        id={editId}
         classroom={classroom}
+        setEditId={setEditId}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -95,9 +96,9 @@ export default function Classroom() {
 
       <AnnouncementForm
         isOpen={modalOpen === "announcement"}
-        isEdit={false}
-        data={null}
+        id={editId}
         classroom={classroom}
+        setEditId={setEditId}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -105,9 +106,9 @@ export default function Classroom() {
 
       <MaterialForm
         isOpen={modalOpen === "material"}
-        isEdit={false}
-        data={null}
+        id={editId}
         classroom={classroom}
+        setEditId={setEditId}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -115,9 +116,10 @@ export default function Classroom() {
 
       <AssignmentForm
         isOpen={modalOpen === "assignment"}
-        isEdit={false}
-        data={null}
+        isEdit={id}
+        id={editId}
         classroom={classroom}
+        setEditId={setEditId}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}

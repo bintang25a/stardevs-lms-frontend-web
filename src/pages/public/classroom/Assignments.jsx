@@ -5,13 +5,14 @@ import AssignmentNav from "../../../components/element/AssignmentNav";
 import AssignmentContent from "../../../components/element/AssignmentContent";
 
 export default function Assignments() {
-  const { user, classroom, setModalOpen } = useOutletContext();
-  console.log(classroom);
+  const { user, classroom, setModalOpen, setEditId } = useOutletContext();
+
   const [openTrays, setOpenTrays] = useState([]);
+  const [openMenu, setOpenMenu] = useState("");
 
   const handleToggleExpand = () => {
     if (openTrays.length < 1) {
-      setOpenTrays(classroom.sections.map((s) => s.id));
+      setOpenTrays([...classroom.sections.map((s) => s.id), null]);
       return true;
     } else {
       setOpenTrays([]);
@@ -38,6 +39,10 @@ export default function Assignments() {
         classroom={classroom}
         openTrays={openTrays}
         setOpenTrays={setOpenTrays}
+        openMenu={openMenu}
+        setOpenMenu={setOpenMenu}
+        setModalOpen={setModalOpen}
+        setEditId={setEditId}
       />
     </div>
   );

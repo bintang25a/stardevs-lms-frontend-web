@@ -1,29 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../../_utilities/cn";
-import { createAnnouncement } from "../../_services/announcements";
+import {
+  createAnnouncement,
+  showAnnouncement,
+  updateAnnouncement,
+} from "../../_services/announcements";
 
 export default function AnnouncementForm({
   isOpen,
-  isEdit = false,
-  data,
+  id,
   classroom,
+  setEditId,
   setModalOpen,
   setIsLoading,
   setShowToast,
 }) {
   const tempForm = {
-    title: data?.title ?? "",
-    announcement: data?.announcement ?? "",
-    classroom_id: data?.classroom_id ?? "",
-    section_id: data?.section_id ?? "",
-    order: data?.order ?? "",
-    _method: data && "PUT",
+    title: "",
+    announcement: "",
+    classroom_id: "",
+    section_id: "",
+    order: "",
+    _method: id && "PUT",
   };
 
+  const [isFetching, setIsFetching] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
 
-  const sections = classroom?.sections || [];
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setIsFetching(true);
+
+      try {
+        const { data } = await showAnnouncement(id);
+
+        setFormData({
+          ...formData,
+          title: data?.title,
+          announcement: data?.announcement,
+          classroom_id: data?.classroom_id,
+          section_id: data?.section_id,
+          order: data?.order,
+          _method: "PUT",
+        });
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+        setIsFetching(false);
+      }
+    };
+
+    if (id && isOpen) {
+      fetchData();
+    }
+  }, [id]);
+
+  const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,13 +73,15 @@ export default function AnnouncementForm({
     const fd = {
       ...formData,
       classroom_id: String(classroom?.id),
-      order: 0,
+      order: id ? formData?.order : 0,
     };
 
     try {
       setIsLoading(true);
 
-      const res = await createAnnouncement(fd);
+      const res = id
+        ? await updateAnnouncement(id, fd)
+        : await createAnnouncement(fd);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
       setFormData(tempForm);
@@ -62,6 +99,8 @@ export default function AnnouncementForm({
   const onClose = () => {
     setModalOpen(null);
     setMessage("");
+    setEditId(null);
+    setFormData(tempForm);
   };
 
   if (!isOpen) return null;
@@ -77,7 +116,7 @@ export default function AnnouncementForm({
         )}
       >
         <h2 className={cn("text-xl text-primary font-semibold")}>
-          {isEdit ? "Edit Announcement" : "Create Announcement"}
+          {id ? "Edit Announcement" : "Create Announcement"}
         </h2>
 
         {message && (
@@ -98,12 +137,14 @@ export default function AnnouncementForm({
             placeholder="Praktikum Pemrograman Berbasi Web"
             onChange={handleChange}
             value={formData.title}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -122,12 +163,14 @@ export default function AnnouncementForm({
             id="announcement"
             onChange={handleChange}
             value={formData.announcement}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -144,12 +187,14 @@ export default function AnnouncementForm({
             id="section_id"
             onChange={handleChange}
             value={formData.section_id}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary cursor-pointer",
+              "disabled:opacity-50",
             )}
           >
             <option value="">Select Section (optional)</option>
@@ -174,15 +219,17 @@ export default function AnnouncementForm({
             Batal
           </button>
           <button
+            disabled={isFetching}
             onClick={() => handleSubmit(formData, "create")}
             className={cn(
               "hover:bg-thirdnary active:bg-thirdnary transition-all",
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
               "text-lg text-primary font-medium",
+              "disabled:opacity-50",
             )}
           >
-            {isEdit ? "Save" : "Create"}
+            {id ? "Save" : "Create"}
           </button>
         </div>
       </div>

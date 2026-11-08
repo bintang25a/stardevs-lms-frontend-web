@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../../_utilities/cn";
 import { FaChevronDown, FaLink, FaTrash, FaXmark } from "react-icons/fa6";
 import { createAssignment } from "../../_services/assignments";
@@ -35,6 +35,10 @@ export default function AssignmentForm({
 
   const sections = classroom?.sections || [];
   const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+  useEffect(() => {
+    setFormData(tempForm);
+  }, [data]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
