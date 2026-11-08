@@ -60,7 +60,7 @@ export default function PublicLayout() {
         user={user}
       />
 
-      <main className={cn("w-full h-full flex")}>
+      <main className={cn("w-full h-full max-h-screen overflow-auto flex")}>
         <PublicSidebar
           isOpen={isOpen}
           handleToggleMenu={handleToggleMenu}

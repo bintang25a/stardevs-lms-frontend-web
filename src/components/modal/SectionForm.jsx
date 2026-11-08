@@ -119,7 +119,7 @@ export default function SectionForm({
             Choose Section
           </label>
           <input
-            type="datetime-local"
+            type="date"
             name="date"
             id="date"
             onChange={handleChange}

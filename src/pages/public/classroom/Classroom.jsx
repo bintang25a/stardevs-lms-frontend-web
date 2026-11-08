@@ -26,6 +26,7 @@ export default function Classroom() {
     message: "",
   });
 
+  const [isInit, setIsInit] = useState(true);
   const [classroom, setClassroom] = useState(null);
   const [modalOpen, setModalOpen] = useState(null);
 
@@ -38,12 +39,13 @@ export default function Classroom() {
 
       try {
         const data = await showClassroom(id);
-        console.log(data);
+
         setClassroom(data);
       } catch (error) {
         console.log(error);
       } finally {
         setIsLoading(false);
+        setIsInit(false);
       }
     };
 
@@ -54,12 +56,24 @@ export default function Classroom() {
     }
   }, [id]);
 
+  const Main = () => {
+    return isInit ? (
+      <div className="h-full"></div>
+    ) : (
+      <Outlet context={{ classroom, user, setModalOpen }} />
+    );
+  };
+
   return (
     <div
-      className={cn("w-full xl:w-5/6 h-full", "flex flex-col gap-2", "z-10")}
+      className={cn(
+        "w-full xl:w-5/6 max-h-full",
+        "flex flex-col gap-2",
+        "z-10",
+      )}
     >
       <ClassroomNav />
-      <Outlet context={{ classroom, user, setModalOpen }} />
+      <Main />
       <Footer />
 
       <NotificationToast

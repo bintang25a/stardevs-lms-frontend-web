@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cn } from "../../_utilities/cn";
-import { FaChevronDown, FaLink, FaXmark } from "react-icons/fa6";
+import { FaChevronDown, FaLink, FaTrash, FaXmark } from "react-icons/fa6";
 import { createAssignment } from "../../_services/assignments";
 
 export default function AssignmentForm({
@@ -26,8 +26,8 @@ export default function AssignmentForm({
   };
 
   const [showFiles, setShowFiles] = useState([]);
-  const [testCases, setTestCases] = useState([]);
-  const [answerKeys, setAnswerKeys] = useState([]);
+  const [testCases, setTestCases] = useState([{ name: "test-case-1" }]);
+  const [answerKeys, setAnswerKeys] = useState([{ name: "answer-key-1" }]);
   const [openTrays, setOpenTrays] = useState([]);
   const [fileUrl, setFileUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -75,8 +75,12 @@ export default function AssignmentForm({
   const handleSubmit = async () => {
     const payload = new FormData();
 
+    const tempAnswerKeys = answerKeys.filter((a) => a.file);
+    const tempTestCases = testCases.filter((t) => t.file);
+
     const fd = {
       ...formData,
+      files: [...formData.files, ...tempAnswerKeys, ...tempTestCases],
       classroom_id: String(classroom?.id),
       order: 0,
     };
@@ -162,6 +166,8 @@ export default function AssignmentForm({
   };
 
   const onClose = () => {
+    setAnswerKeys([{ name: "answer-key-1" }]);
+    setTestCases([{ name: "test-case-1" }]);
     setModalOpen(null);
     setMessage("");
   };
@@ -171,6 +177,84 @@ export default function AssignmentForm({
       setOpenTrays((prev) => [...prev.filter((j) => j !== i)]);
     } else {
       setOpenTrays((prev) => [...prev, i]);
+    }
+  };
+
+  const handleAddOptionalFile = (e, type) => {
+    const { name, files } = e.target;
+
+    if (type === "answerkey") {
+      const idx = answerKeys.findIndex((a) => a.name === name);
+      const newData = { ...answerKeys[idx], file: files[0], type };
+
+      const updatedAnswerKeys = answerKeys.map((item, index) =>
+        index === idx ? newData : item,
+      );
+
+      const tempData = updatedAnswerKeys[answerKeys.length - 1];
+      const tempName = tempData.name;
+      const numberName = Number(tempName.split("-")[2]);
+      const newName = `answer-key-${numberName + 1}`;
+      const idxName = answerKeys.findIndex((a) => a.name === newName);
+
+      if (idxName !== -1 || !tempData.file) {
+        setAnswerKeys(updatedAnswerKeys);
+      } else {
+        setAnswerKeys([...updatedAnswerKeys, { name: newName }]);
+      }
+    }
+
+    if (type === "testcase") {
+      const idx = testCases.findIndex((a) => a.name === name);
+      const newData = { ...testCases[idx], file: files[0], type };
+
+      const updatedTestCases = testCases.map((item, index) =>
+        index === idx ? newData : item,
+      );
+
+      const tempData = updatedTestCases[testCases.length - 1];
+      const tempName = tempData.name;
+      const numberName = Number(tempName.split("-")[2]);
+      const newName = `test-case-${numberName + 1}`;
+      const idxName = testCases.findIndex((a) => a.name === newName);
+
+      if (idxName !== -1 || !tempData.file) {
+        setTestCases(updatedTestCases);
+      } else {
+        setTestCases([...updatedTestCases, { name: newName }]);
+      }
+    }
+  };
+
+  const handleRemoveOptionalFile = (type) => {
+    if (type === "answerkey" && answerKeys.length >= 2) {
+      const secondLastIndex = answerKeys.length - 2;
+
+      const modifiedItem = {
+        name: answerKeys[secondLastIndex].name,
+      };
+
+      const updatedAnswerKeys = [
+        ...answerKeys.slice(0, secondLastIndex),
+        modifiedItem,
+      ];
+
+      setAnswerKeys(updatedAnswerKeys);
+    }
+
+    if (type === "testcase" && testCases.length >= 2) {
+      const secondLastIndex = testCases.length - 2;
+
+      const modifiedItem = {
+        name: testCases[secondLastIndex].name,
+      };
+
+      const updatedTestCases = [
+        ...testCases.slice(0, secondLastIndex),
+        modifiedItem,
+      ];
+
+      setTestCases(updatedTestCases);
     }
   };
 
@@ -320,7 +404,6 @@ export default function AssignmentForm({
                 type="file"
                 name="files"
                 id="files"
-                placeholder="Praktikum Pemrograman Berbasi Web"
                 onChange={handleChange}
                 className="hidden"
                 multiple
@@ -438,20 +521,71 @@ export default function AssignmentForm({
           >
             <span>
               Upload Answer Key{" "}
-              {answerKeys.length === 0 ? "(Optional)" : `${answerKeys.length}`}
+              {!answerKeys[0]?.file
+                ? "(Optional)"
+                : `(${answerKeys.length - 1})`}
             </span>
             <FaChevronDown size={32} />
           </h2>
 
           <div
             className={cn(
+              "flex flex-col gap-0.5",
               "w-full overflow-hidden transition-all duration-300 ease-in-out",
               openTrays.includes(1)
                 ? "max-h-125 opacity-100 py-2"
                 : "max-h-0 opacity-0 py-0",
             )}
           >
-            Container
+            <span className="text-sm text-orange-400 mb-2">
+              * Sesuaikan dengan nomor soal yang dibuat
+            </span>
+
+            {answerKeys.map((item, i) => (
+              <div key={i} className="w-full flex items-center">
+                <label
+                  className={cn("text-sm text-left font-light truncate flex-1")}
+                  htmlFor={item.name}
+                >
+                  {item.name.toUpperCase()} : {item.file?.name || "-"}
+                </label>
+
+                <label
+                  htmlFor={item.name}
+                  className={cn(
+                    "w-fit",
+                    "p-2 rounded-t-md outline-none",
+                    "text-sm text-center text-white font-normal truncate",
+                    "bg-primary rounded-md",
+                    "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                  )}
+                >
+                  <input
+                    type="file"
+                    name={item.name}
+                    id={item.name}
+                    onChange={(e) => handleAddOptionalFile(e, "answerkey")}
+                    className="hidden"
+                  />
+
+                  {item.file ? "Change" : "Add"}
+                </label>
+
+                <button
+                  onClick={() => handleRemoveOptionalFile("answerkey")}
+                  className={cn(
+                    "w-fit",
+                    "p-2 outline-none ml-0.5",
+                    "bg-red-600 rounded-md text-white",
+                    "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                    !answerKeys[answerKeys.length - 2]?.file && "hidden",
+                    i !== answerKeys.length - 1 && "hidden",
+                  )}
+                >
+                  <FaTrash size={15} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -467,20 +601,70 @@ export default function AssignmentForm({
           >
             <span>
               Upload Test Case{" "}
-              {testCases.length === 0 ? "(Optional)" : `${testCases.length}`}
+              {!testCases[0].file ? "(Optional)" : `(${testCases.length - 1})`}
             </span>
             <FaChevronDown size={32} />
           </h2>
 
           <div
             className={cn(
+              "flex flex-col gap-0.5",
               "w-full overflow-hidden transition-all duration-300 ease-in-out",
               openTrays.includes(2)
                 ? "max-h-125 opacity-100 py-2"
                 : "max-h-0 opacity-0 py-0",
             )}
           >
-            Container
+            <span className="text-sm text-orange-400 mb-2">
+              * Sesuaikan dengan answer key yang dibuat
+            </span>
+
+            {testCases.map((item, i) => (
+              <div key={i} className="w-full flex items-center">
+                <label
+                  className={cn("text-sm text-left font-light truncate flex-1")}
+                  htmlFor={item.name}
+                >
+                  {item.name.toUpperCase()} : {item.file?.name || "-"}
+                </label>
+
+                <label
+                  htmlFor={item.name}
+                  className={cn(
+                    "w-fit",
+                    "p-2 rounded-t-md outline-none",
+                    "text-sm text-center text-white font-normal truncate",
+                    "bg-primary rounded-md",
+                    "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                  )}
+                >
+                  <input
+                    type="file"
+                    name={item.name}
+                    id={item.name}
+                    onChange={(e) => handleAddOptionalFile(e, "testcase")}
+                    accept=".txt"
+                    className="hidden"
+                  />
+
+                  {item.file ? "Change" : "Add"}
+                </label>
+
+                <button
+                  onClick={() => handleRemoveOptionalFile("testcase")}
+                  className={cn(
+                    "w-fit",
+                    "p-2 outline-none ml-0.5",
+                    "bg-red-600 rounded-md text-white",
+                    "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                    !testCases[testCases.length - 2]?.file && "hidden",
+                    i !== testCases.length - 1 && "hidden",
+                  )}
+                >
+                  <FaTrash size={15} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
 
