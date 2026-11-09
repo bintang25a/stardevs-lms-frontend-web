@@ -14,6 +14,7 @@ export default function AnnouncementForm({
   setModalOpen,
   setIsLoading,
   setShowToast,
+  setRefresh,
 }) {
   const tempForm = {
     title: "",
@@ -21,7 +22,6 @@ export default function AnnouncementForm({
     classroom_id: "",
     section_id: "",
     order: "",
-    _method: id && "PUT",
   };
 
   const [isFetching, setIsFetching] = useState(false);

@@ -10,7 +10,7 @@ export default function ControlPanel() {
   return (
     <div
       className={cn(
-        "w-full h-full p-4",
+        "w-full xl:xl:w-7/10 xl:self-center h-full p-4",
         "flex flex-wrap gap-2 xl:gap-3 content-start items-stretch",
       )}
     >

@@ -3,8 +3,8 @@ import axios from "axios";
 // terminal = npm run dev -- --host
 
 const API = axios.create({
-  // baseURL: "http:///192.168.1.6:8000/api",
-  baseURL: "http://10.200.70.149:8000/api",
+  baseURL: "http:///192.168.1.6:8000/api",
+  // baseURL: "http://10.200.70.149:8000/api",
   // baseURL: "http://127.0.0.1:8000/api",
 });
 
@@ -17,7 +17,7 @@ API.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 API.interceptors.response.use(
@@ -39,7 +39,7 @@ API.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default API;

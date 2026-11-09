@@ -12,8 +12,11 @@ import { lowerOrder, raiseOrder } from "../../_services/actions";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AssignmentMenuButtons from "./AssignmentMenuButtons";
+import ConfirmDelete from "../modal/ConfirmDelete";
+import AnnouncementModal from "../modal/AnnouncementModal";
 
 export default function AssignmentContent({
+  user,
   classroom: classroomParams,
   openTrays,
   setOpenTrays,
@@ -21,6 +24,7 @@ export default function AssignmentContent({
   setOpenMenu,
   setModalOpen,
   setEditId,
+  setRefresh,
 }) {
   const [classroom, setClassroom] = useState(classroomParams);
 
@@ -29,6 +33,15 @@ export default function AssignmentContent({
 
   const [searchParams] = useSearchParams();
   const sectionId = searchParams.get("section");
+
+  const [confirmDelete, setConfirmDelete] = useState({
+    isOpen: false,
+    message: "",
+    action: null,
+    id: null,
+  });
+
+  const [announcement, setAnnouncement] = useState({ isOpen: false, id: null });
 
   useEffect(() => {
     if (sectionId) {
@@ -142,21 +155,27 @@ export default function AssignmentContent({
     {
       label: "Edit",
       action: handleModalOpen,
+      role: ["asisten"],
     },
     {
       label: "Delete",
+      action: setConfirmDelete,
+      role: ["asisten"],
     },
     {
       label: "Copy Link",
       action: handleCopyUrl,
+      role: ["praktikan", "asisten"],
     },
     {
       label: "Raise",
       action: handleRaiseLower,
+      role: ["asisten"],
     },
     {
       label: "Lower",
       action: handleRaiseLower,
+      role: ["asisten"],
     },
   ];
 
@@ -248,6 +267,7 @@ export default function AssignmentContent({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   handleOpenMenu(`section-${section.id}`);
                 }}
                 className={cn(
@@ -263,6 +283,7 @@ export default function AssignmentContent({
 
               <AssignmentMenuButtons
                 idx={i}
+                user={user}
                 menuButtons={menuButtons}
                 sectionId={section?.id}
                 contentType={"section"}
@@ -284,71 +305,104 @@ export default function AssignmentContent({
                   : "max-h-0 opacity-0",
               )}
             >
-              {sortedContents?.map((content, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "w-full p-4 xl:px-8 xl:py-4 xl:pr-18",
-                    "flex justify-between items-center",
-                    "border-b border-b-secondary",
-                    "hover:bg-gray-100 active:bg-gray-100 transition-none",
-                    "cursor-pointer relative",
-                  )}
-                >
-                  <h2
+              {sortedContents?.map((content, i) => {
+                const isAnnouncement = content?.content_type === "announcement";
+
+                const DynamicTag = isAnnouncement ? "div" : "a";
+
+                const dynamicProps = isAnnouncement
+                  ? {
+                      onClick: () =>
+                        setAnnouncement({ isOpen: true, id: content?.id }),
+                    }
+                  : {
+                      href: `${content?.content_type}s/${content?.id}`,
+                      target: "_blank",
+                    };
+
+                return (
+                  <DynamicTag
+                    {...dynamicProps}
+                    key={i}
                     className={cn(
-                      "text-gray-700 text-md font-normal truncate",
-                      "flex items-center justify-center gap-2",
+                      "w-full p-4 xl:px-8 xl:py-4 xl:pr-18",
+                      "flex justify-between items-center",
+                      "border-b border-b-secondary",
+                      "hover:bg-gray-100 active:bg-gray-100 transition-none",
+                      "cursor-pointer relative",
                     )}
                   >
-                    <div
+                    <h2
                       className={cn(
-                        "bg-gray-300 p-2 rounded-full",
-                        "text-primary",
+                        "text-gray-700 text-md font-normal truncate",
+                        "flex items-center justify-center gap-2",
                       )}
                     >
-                      {icon(content.content_type)}
-                    </div>
+                      <div
+                        className={cn(
+                          "bg-gray-300 p-2 rounded-full",
+                          "text-primary",
+                        )}
+                      >
+                        {icon(content.content_type)}
+                      </div>
 
-                    <span>{content?.title}</span>
-                  </h2>
+                      <span>{content?.title}</span>
+                    </h2>
 
-                  <span className={cn("hidden xl:block text-sm font-light")}>
-                    {content?.ended_at &&
-                      `Due: ${isoToLongDateTime(content?.ended_at)}`}
-                  </span>
+                    <span className={cn("hidden xl:block text-sm font-light")}>
+                      {content?.ended_at &&
+                        `Due: ${isoToLongDateTime(content?.ended_at)}`}
+                    </span>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenMenu(`${content?.content_type}-${content.id}`);
-                    }}
-                    className={cn(
-                      "p-3 rounded-full",
-                      "absolute right-4",
-                      "hover:bg-gray-200",
-                      "transition-all cursor-pointer",
-                    )}
-                  >
-                    <FaEllipsisVertical size={16} />
-                  </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleOpenMenu(
+                          `${content?.content_type}-${content.id}`,
+                        );
+                      }}
+                      className={cn(
+                        "p-3 rounded-full",
+                        "absolute right-4",
+                        "hover:bg-gray-200",
+                        "transition-all cursor-pointer",
+                      )}
+                    >
+                      <FaEllipsisVertical size={16} />
+                    </button>
 
-                  <AssignmentMenuButtons
-                    idx={i}
-                    menuButtons={menuButtons}
-                    sectionId={section?.id}
-                    contentType={content?.content_type}
-                    contentId={content?.id}
-                    openMenu={openMenu}
-                    setOpenMenu={setOpenMenu}
-                    sortedData={sortedContents}
-                  />
-                </div>
-              ))}
+                    <AssignmentMenuButtons
+                      idx={i}
+                      user={user}
+                      menuButtons={menuButtons}
+                      sectionId={section?.id}
+                      contentType={content?.content_type}
+                      contentId={content?.id}
+                      openMenu={openMenu}
+                      setOpenMenu={setOpenMenu}
+                      sortedData={sortedContents}
+                    />
+                  </DynamicTag>
+                );
+              })}
             </div>
           </div>
         );
       })}
+
+      <AnnouncementModal
+        isOpen={announcement?.isOpen}
+        id={announcement?.id}
+        setSettings={setAnnouncement}
+      />
+
+      <ConfirmDelete
+        confirmDelete={confirmDelete}
+        setConfirmDelete={setConfirmDelete}
+        setRefresh={setRefresh}
+      />
     </main>
   );
 }

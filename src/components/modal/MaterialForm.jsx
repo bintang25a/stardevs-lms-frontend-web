@@ -21,17 +21,20 @@ export default function MaterialForm({
     title: "",
     description: "",
     files: [],
-    files_url: [],
     classroom_id: "",
     section_id: "",
     order: "",
+    files_remove_ids: [],
   };
 
   const [isFetching, setIsFetching] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [showFiles, setShowFiles] = useState([]);
   const [fileUrl, setFileUrl] = useState("");
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
+
+  const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
+  const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,12 +51,19 @@ export default function MaterialForm({
           classroom_id: data?.classroom_id,
           section_id: data?.section_id || "",
           order: data?.order,
-          files: [],
-          files_url: [...data?.files?.map((d) => d?.file_name)],
           _method: "PUT",
         });
 
-        setFiles([...data?.files?.map((d) => d?.file_name)]);
+        const convertFiles = [
+          ...data.files.map((f) => ({
+            ...f,
+            url: f?.file_url,
+            name: f?.file_name,
+            isNew: false,
+          })),
+        ];
+
+        setShowFiles(convertFiles);
       } catch (error) {
         console.log(error);
       } finally {
@@ -67,18 +77,31 @@ export default function MaterialForm({
     }
   }, [id]);
 
-  const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
-
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (files) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: [...files],
+      const invalidFiles = [...files].filter(
+        (file) => file.size > MAX_FILE_SIZE,
+      );
+
+      if (invalidFiles.length > 0) {
+        return setMessage("Max File size 20 MB!");
+      }
+
+      const tempFiles = [...files].map((file) => ({
+        isNew: true,
+        name: "",
+        file: file,
+        url: "",
       }));
 
-      setFiles((prev) => [...prev, ...[...files].map((item) => item?.name)]);
+      setFormData((prev) => ({
+        ...prev,
+        files: [...prev.files, ...tempFiles],
+      }));
+
+      setShowFiles([...formData.files, ...tempFiles]);
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -94,27 +117,24 @@ export default function MaterialForm({
       ...formData,
       classroom_id: String(classroom?.id),
       order: id ? formData?.order : 0,
+      files: [...showFiles.filter((file) => file.isNew)],
     };
 
     Object.entries(fd).forEach(([key, value]) => {
       if (key === "files" && Array.isArray(value)) {
-        value.forEach((file) => {
-          if (file) {
-            payload.append("files[]", file);
-          }
+        value.forEach((item, i) => {
+          Object.keys(item).forEach((subKey) => {
+            payload.append(`${key}[${i}][${subKey}]`, item[subKey]);
+          });
         });
-      } else if (key === "files_url" && Array.isArray(value)) {
-        value.forEach((url) => {
-          if (url) {
-            payload.append("files_url[]", url);
-          }
+      } else if (key === "files_remove_ids") {
+        value.forEach((item) => {
+          payload.append("files_remove_ids[]", item);
         });
       } else if (value !== null && value !== undefined && value !== false) {
         payload.append(key, value);
       }
     });
-
-    console.log(fd);
 
     try {
       setIsLoading(true);
@@ -126,8 +146,8 @@ export default function MaterialForm({
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
       setRefresh((prev) => !prev);
       setFormData(tempForm);
+      setShowFiles([]);
       setMessage("");
-      setFiles([]);
       onClose();
     } catch (error) {
       console.log(error);
@@ -139,46 +159,56 @@ export default function MaterialForm({
   };
 
   const handleAddUrl = () => {
-    if (!formData.files_url.includes(fileUrl)) {
-      formData.files_url.push(fileUrl);
+    const idx = showFiles.findIndex((temp) => temp.url === fileUrl);
 
-      setFiles([
-        ...formData.files_url,
-        ...formData.files.map((item) => item?.name),
-      ]);
+    if (idx === -1 && fileUrl !== "") {
+      const newUrl = {
+        isNew: true,
+        name: "",
+        url: fileUrl,
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        files: [...prev.files, newUrl],
+      }));
+
+      setShowFiles([...showFiles, newUrl]);
     }
 
     setFileUrl("");
   };
 
-  const handleRemoveFile = (name) => {
-    const tempUrl = formData.files_url;
-    const idxUrl = tempUrl.findIndex((temp) => temp === name);
-    const updateUrl =
-      idxUrl !== -1
-        ? [...tempUrl.slice(0, idxUrl), ...tempUrl.slice(idxUrl + 1)]
-        : tempUrl;
+  const handleRemoveFile = (data) => {
+    const idxFile = !data.file
+      ? showFiles.findIndex((file) => file.url === data.url)
+      : showFiles.findIndex((file) => file.file === data.file);
 
-    const tempFile = formData.files;
-    const idxFile = tempFile.findIndex((temp) => temp.name === name);
-    const updateFile =
+    const updateFiles =
       idxFile !== -1
-        ? [...tempFile.slice(0, idxFile), ...tempFile.slice(idxFile + 1)]
-        : tempFile;
+        ? [...showFiles.slice(0, idxFile), ...showFiles.slice(idxFile + 1)]
+        : showFiles;
 
-    setFiles([...updateUrl, ...updateFile?.map((item) => item?.name)]);
+    if (data.id) {
+      setFormData((prev) => ({
+        ...prev,
+        files_remove_ids: [...prev.files_remove_ids, data.id],
+      }));
+    }
 
-    setFormData({
-      ...formData,
-      files_url: [...updateUrl],
-      files: [...updateFile],
-    });
+    setFormData((prev) => ({
+      ...prev,
+      files: [...updateFiles.filter((file) => file.isNew)],
+    }));
+
+    setShowFiles([...updateFiles]);
   };
 
   const onClose = () => {
-    setModalOpen(null);
     setMessage("");
     setEditId(null);
+    setShowFiles([]);
+    setModalOpen(null);
     setFormData(tempForm);
   };
 
@@ -192,7 +222,7 @@ export default function MaterialForm({
           "bg-gray-200  rounded-xl shadow-sm shadow-gray-400",
           "pt-12 px-8 pb-4",
           "flex flex-col justify-start items-start gap-4",
-          "overflow-auto"
+          "overflow-auto",
         )}
       >
         <h2 className={cn("text-xl text-primary font-semibold")}>
@@ -224,7 +254,7 @@ export default function MaterialForm({
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
-              "disabled:opacity-50"
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -250,7 +280,7 @@ export default function MaterialForm({
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
-              "disabled:opacity-50"
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -266,7 +296,7 @@ export default function MaterialForm({
           <div
             className={cn(
               "w-full",
-              "flex flex-wrap xl:flex-row gap-1 justify-center items-center"
+              "flex flex-wrap xl:flex-row gap-1 justify-center items-center",
             )}
           >
             <label
@@ -276,7 +306,7 @@ export default function MaterialForm({
                 "p-2 rounded-t-md outline-none",
                 "text-sm text-center text-white font-normal truncate",
                 "bg-primary rounded-md",
-                "hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                "hover:scale-105 active:scale-95 transition-all cursor-pointer",
               )}
             >
               Choose File
@@ -295,7 +325,7 @@ export default function MaterialForm({
             <span
               className={cn(
                 "w-full xl:w-fit h-full",
-                "flex justify-center items-center"
+                "flex justify-center items-center",
               )}
             >
               Or
@@ -315,18 +345,19 @@ export default function MaterialForm({
                 "p-2 rounded-t-md outline-none",
                 "text-sm text-primary font-normal",
                 "hover:shadow-sm hover:shadow-primary",
-                "disabled:opacity-50"
+                "disabled:opacity-50",
               )}
             />
 
             <button
+              disabled={isFetching}
               onClick={handleAddUrl}
               title="Add Url"
               className={cn(
                 "flex justify-center items-center p-1",
                 "bg-primary rounded-md",
                 "text-white",
-                "hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                "hover:scale-105 active:scale-95 transition-all cursor-pointer",
               )}
             >
               <FaLink size={20} />
@@ -336,24 +367,25 @@ export default function MaterialForm({
           <div
             className={cn(
               "w-full mt-2",
-              "flex flex-wrap gap-1 justify-start items-center"
+              "flex flex-wrap gap-1 justify-start items-center",
             )}
           >
-            {files.map((file, i) => (
+            {showFiles.map((file, i) => (
               <div
                 key={i}
                 className={cn(
                   "w-fit max-w-40 ",
                   "bg-gray-400 rounded-full",
                   "py-1 px-3",
-                  "flex justify-between items-center gap-1"
+                  "flex justify-between items-center gap-1",
                 )}
               >
                 <span className="text-black text-sm font-light truncate">
-                  {file}
+                  {!file.file ? file.name || file.url : file.file.name}
                 </span>
 
                 <button
+                  disabled={isFetching}
                   onClick={() => handleRemoveFile(file)}
                   className="flex justify-center items-center cursor-pointer"
                 >
@@ -383,7 +415,7 @@ export default function MaterialForm({
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary cursor-pointer",
-              "disabled:opacity-50"
+              "disabled:opacity-50",
             )}
           >
             <option value="">Select Section (optional)</option>
@@ -402,7 +434,7 @@ export default function MaterialForm({
               "hover:bg-thirdnary active:bg-thirdnary transition-all",
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
-              "text-lg text-primary font-medium"
+              "text-lg text-primary font-medium",
             )}
           >
             Batal
@@ -415,7 +447,7 @@ export default function MaterialForm({
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
               "text-lg text-primary font-medium",
-              "disabled:opacity-50"
+              "disabled:opacity-50",
             )}
           >
             {id ? "Save" : "Create"}

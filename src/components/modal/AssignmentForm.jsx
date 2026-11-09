@@ -1,30 +1,36 @@
 import { useEffect, useState } from "react";
 import { cn } from "../../_utilities/cn";
 import { FaChevronDown, FaLink, FaTrash, FaXmark } from "react-icons/fa6";
-import { createAssignment } from "../../_services/assignments";
+import {
+  createAssignment,
+  showAssignment,
+  updateAssignment,
+} from "../../_services/assignments";
 
 export default function AssignmentForm({
   isOpen,
-  isEdit = false,
-  data,
+  id,
   classroom,
+  setEditId,
   setModalOpen,
   setIsLoading,
   setShowToast,
+  setRefresh,
 }) {
   const tempForm = {
-    title: data?.title ?? "",
-    description: data?.description ?? "",
-    started_at: data?.started_at ?? "",
-    ended_at: data?.ended_at ?? "",
-    allow_overtime: data?.allow_overtime ?? "0",
+    title: "",
+    description: "",
+    started_at: "",
+    ended_at: "",
+    allow_overtime: "0",
     files: [],
-    classroom_id: data?.classroom_id ?? "",
-    section_id: data?.section_id ?? "",
-    order: data?.order ?? "",
-    _method: isEdit && "PUT",
+    classroom_id: "",
+    section_id: "",
+    order: "",
+    files_remove_ids: [],
   };
 
+  const [isFetching, setIsFetching] = useState(false);
   const [showFiles, setShowFiles] = useState([]);
   const [testCases, setTestCases] = useState([{ name: "test-case-1" }]);
   const [answerKeys, setAnswerKeys] = useState([{ name: "answer-key-1" }]);
@@ -33,12 +39,66 @@ export default function AssignmentForm({
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
 
-  const sections = classroom?.sections || [];
+  const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
   const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
   useEffect(() => {
-    setFormData(tempForm);
-  }, [data]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      setIsFetching(true);
+
+      try {
+        const { data } = await showAssignment(id);
+
+        setFormData({
+          ...formData,
+          title: data?.title,
+          description: data?.description || "",
+          started_at: data?.started_at,
+          ended_at: data?.ended_at,
+          allow_overtime: data?.allow_overtime ? "1" : "0",
+          section_id: data?.section_id || "",
+          order: data?.order,
+          _method: "PUT",
+        });
+
+        const convertFiles = [
+          ...data.files.map((f) => ({
+            ...f,
+            url: f?.file_url,
+            name: f?.file_name,
+            isNew: false,
+          })),
+        ];
+
+        console.log(convertFiles.filter((f) => f.type === "answerkey"));
+
+        const tempKeys = convertFiles.filter((f) => f.type === "answerkey");
+        const tempCases = convertFiles.filter((f) => f.type === "testcase");
+
+        setShowFiles(convertFiles.filter((f) => f.type === "assignment"));
+
+        setAnswerKeys([
+          ...tempKeys,
+          { name: `answer-key-${tempKeys.length + 1}` },
+        ]);
+
+        setTestCases([
+          ...tempCases,
+          { name: `test-case-${tempCases.length + 1}` },
+        ]);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+        setIsFetching(false);
+      }
+    };
+
+    if (id && isOpen) {
+      fetchData();
+    }
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -53,6 +113,7 @@ export default function AssignmentForm({
       }
 
       const tempFiles = [...files].map((file) => ({
+        isNew: true,
         name: "",
         file: file,
         url: "",
@@ -79,14 +140,15 @@ export default function AssignmentForm({
   const handleSubmit = async () => {
     const payload = new FormData();
 
-    const tempAnswerKeys = answerKeys.filter((a) => a.file);
-    const tempTestCases = testCases.filter((t) => t.file);
+    const tempAnswerKeys = answerKeys.filter((a) => a.file && a.isNew);
+    const tempTestCases = testCases.filter((t) => t.file && t.isNew);
+    const tempFiles = showFiles.filter((file) => file.isNew);
 
     const fd = {
       ...formData,
-      files: [...formData.files, ...tempAnswerKeys, ...tempTestCases],
+      files: [...tempFiles, ...tempAnswerKeys, ...tempTestCases],
       classroom_id: String(classroom?.id),
-      order: 0,
+      order: id ? formData?.order : 0,
     };
 
     Object.entries(fd).forEach(([key, value]) => {
@@ -96,6 +158,10 @@ export default function AssignmentForm({
             payload.append(`${key}[${i}][${subKey}]`, item[subKey]);
           });
         });
+      } else if (key === "files_remove_ids") {
+        value.forEach((item) => {
+          payload.append("files_remove_ids[]", item);
+        });
       } else if (value !== null && value !== undefined && value !== false) {
         payload.append(key, value);
       }
@@ -104,7 +170,9 @@ export default function AssignmentForm({
     try {
       setIsLoading(true);
 
-      const res = await createAssignment(payload);
+      const res = id
+        ? await updateAssignment(id, payload)
+        : await createAssignment(payload);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
       setRefresh((prev) => !prev);
@@ -122,11 +190,11 @@ export default function AssignmentForm({
   };
 
   const handleAddUrl = () => {
-    const temps = formData.files;
-    const idx = temps.findIndex((temp) => temp.url === fileUrl);
+    const idx = showFiles.findIndex((temp) => temp.url === fileUrl);
 
     if (idx === -1 && fileUrl !== "") {
       const newUrl = {
+        isNew: true,
         name: "",
         url: fileUrl,
         type: "assignment",
@@ -137,34 +205,36 @@ export default function AssignmentForm({
         files: [...prev.files, newUrl],
       }));
 
-      setShowFiles([
-        ...formData.files.filter((file) => file.type === "assignment"),
-        newUrl,
-      ]);
+      setShowFiles([...showFiles, newUrl]);
     }
 
     setFileUrl("");
   };
 
   const handleRemoveFile = (data) => {
-    const tempFiles = formData.files;
-
     const idxFile = !data.file
-      ? tempFiles.findIndex(
+      ? showFiles.findIndex(
           (file) => file.url === data.url && file.type === data.type,
         )
-      : tempFiles.findIndex(
+      : showFiles.findIndex(
           (file) => file.file === data.file && file.type === data.type,
         );
 
     const updateFiles =
       idxFile !== -1
-        ? [...tempFiles.slice(0, idxFile), ...tempFiles.slice(idxFile + 1)]
-        : tempFiles;
+        ? [...showFiles.slice(0, idxFile), ...showFiles.slice(idxFile + 1)]
+        : showFiles;
+
+    if (data.id) {
+      setFormData((prev) => ({
+        ...prev,
+        files_remove_ids: [...prev.files_remove_ids, data.id],
+      }));
+    }
 
     setFormData((prev) => ({
       ...prev,
-      files: [...updateFiles],
+      files: [...updateFiles.filter((file) => file.isNew)],
     }));
 
     setShowFiles([...updateFiles.filter((file) => file.type === "assignment")]);
@@ -173,8 +243,11 @@ export default function AssignmentForm({
   const onClose = () => {
     setAnswerKeys([{ name: "answer-key-1" }]);
     setTestCases([{ name: "test-case-1" }]);
-    setModalOpen(null);
     setMessage("");
+    setEditId(null);
+    setShowFiles([]);
+    setModalOpen(null);
+    setFormData(tempForm);
   };
 
   const handleOpenTrays = (i) => {
@@ -190,7 +263,7 @@ export default function AssignmentForm({
 
     if (type === "answerkey") {
       const idx = answerKeys.findIndex((a) => a.name === name);
-      const newData = { ...answerKeys[idx], file: files[0], type };
+      const newData = { ...answerKeys[idx], file: files[0], type, isNew: true };
 
       const updatedAnswerKeys = answerKeys.map((item, index) =>
         index === idx ? newData : item,
@@ -211,7 +284,7 @@ export default function AssignmentForm({
 
     if (type === "testcase") {
       const idx = testCases.findIndex((a) => a.name === name);
-      const newData = { ...testCases[idx], file: files[0], type };
+      const newData = { ...testCases[idx], file: files[0], type, isNew: true };
 
       const updatedTestCases = testCases.map((item, index) =>
         index === idx ? newData : item,
@@ -234,9 +307,10 @@ export default function AssignmentForm({
   const handleRemoveOptionalFile = (type) => {
     if (type === "answerkey" && answerKeys.length >= 2) {
       const secondLastIndex = answerKeys.length - 2;
+      const tempData = answerKeys[secondLastIndex];
 
       const modifiedItem = {
-        name: answerKeys[secondLastIndex].name,
+        name: tempData.name,
       };
 
       const updatedAnswerKeys = [
@@ -244,20 +318,35 @@ export default function AssignmentForm({
         modifiedItem,
       ];
 
+      if (tempData.id) {
+        setFormData((prev) => ({
+          ...prev,
+          files_remove_ids: [...prev.files_remove_ids, tempData.id],
+        }));
+      }
+
       setAnswerKeys(updatedAnswerKeys);
     }
 
     if (type === "testcase" && testCases.length >= 2) {
       const secondLastIndex = testCases.length - 2;
+      const tempData = testCases[secondLastIndex];
 
       const modifiedItem = {
-        name: testCases[secondLastIndex].name,
+        name: tempData.name,
       };
 
       const updatedTestCases = [
         ...testCases.slice(0, secondLastIndex),
         modifiedItem,
       ];
+
+      if (tempData.id) {
+        setFormData((prev) => ({
+          ...prev,
+          files_remove_ids: [...prev.files_remove_ids, tempData.id],
+        }));
+      }
 
       setTestCases(updatedTestCases);
     }
@@ -277,7 +366,7 @@ export default function AssignmentForm({
         )}
       >
         <h2 className={cn("text-xl text-primary font-semibold")}>
-          {isEdit ? "Edit Assignment" : "Create Assignment"}
+          {id ? "Edit Assignment" : "Create Assignment"}
         </h2>
 
         {message && (
@@ -298,12 +387,14 @@ export default function AssignmentForm({
             placeholder="Tugas Pertemuan 1"
             onChange={handleChange}
             value={formData.title}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -322,12 +413,14 @@ export default function AssignmentForm({
             id="description"
             onChange={handleChange}
             value={formData.description}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -346,12 +439,14 @@ export default function AssignmentForm({
             placeholder="Praktikum Pemrograman Berbasi Web"
             onChange={handleChange}
             value={formData.started_at}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -370,12 +465,14 @@ export default function AssignmentForm({
             placeholder="Praktikum Pemrograman Berbasi Web"
             onChange={handleChange}
             value={formData.ended_at}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
+              "disabled:opacity-50",
             )}
           />
         </div>
@@ -410,6 +507,7 @@ export default function AssignmentForm({
                 name="files"
                 id="files"
                 onChange={handleChange}
+                disabled={isFetching}
                 className="hidden"
                 multiple
               />
@@ -431,16 +529,19 @@ export default function AssignmentForm({
               placeholder="https://stardevs.my.id"
               onChange={(e) => setFileUrl(e.target.value)}
               value={fileUrl}
+              disabled={isFetching}
               className={cn(
                 "flex-1 min-w-6/10",
                 "bg-white border-b border-b-primary",
                 "p-2 rounded-t-md outline-none",
                 "text-sm text-primary font-normal",
                 "hover:shadow-sm hover:shadow-primary",
+                "disabled:opacity-50",
               )}
             />
 
             <button
+              disabled={isFetching}
               onClick={handleAddUrl}
               title="Add Url"
               className={cn(
@@ -448,6 +549,7 @@ export default function AssignmentForm({
                 "bg-primary rounded-md",
                 "text-white",
                 "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                "disabled:opacity-50",
               )}
             >
               <FaLink size={20} />
@@ -471,10 +573,11 @@ export default function AssignmentForm({
                 )}
               >
                 <span className="text-black text-sm font-light truncate">
-                  {!file.file ? file.url : file.file.name}
+                  {!file.file ? file.name || file.url : file.file.name}
                 </span>
 
                 <button
+                  disabled={isFetching}
                   onClick={() => handleRemoveFile(file)}
                   className="flex justify-center items-center cursor-pointer"
                 >
@@ -497,12 +600,14 @@ export default function AssignmentForm({
             id="section_id"
             onChange={handleChange}
             value={formData.section_id}
+            disabled={isFetching}
             className={cn(
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary cursor-pointer",
+              "disabled:opacity-50",
             )}
           >
             <option value="">Select Section (optional)</option>
@@ -526,7 +631,7 @@ export default function AssignmentForm({
           >
             <span>
               Upload Answer Key{" "}
-              {!answerKeys[0]?.file
+              {!answerKeys[0]?.type
                 ? "(Optional)"
                 : `(${answerKeys.length - 1})`}
             </span>
@@ -552,7 +657,8 @@ export default function AssignmentForm({
                   className={cn("text-sm text-left font-light truncate flex-1")}
                   htmlFor={item.name}
                 >
-                  {item.name.toUpperCase()} : {item.file?.name || "-"}
+                  {item.name.toUpperCase()} :{" "}
+                  {item.file?.name || item.file_name || "-"}
                 </label>
 
                 <label
@@ -569,6 +675,7 @@ export default function AssignmentForm({
                     type="file"
                     name={item.name}
                     id={item.name}
+                    disabled={isFetching}
                     onChange={(e) => handleAddOptionalFile(e, "answerkey")}
                     className="hidden"
                   />
@@ -577,14 +684,18 @@ export default function AssignmentForm({
                 </label>
 
                 <button
+                  disabled={isFetching}
                   onClick={() => handleRemoveOptionalFile("answerkey")}
                   className={cn(
                     "w-fit",
                     "p-2 outline-none ml-0.5",
                     "bg-red-600 rounded-md text-white",
                     "hover:scale-105 active:scale-95 transition-all cursor-pointer",
-                    !answerKeys[answerKeys.length - 2]?.file && "hidden",
-                    i !== answerKeys.length - 1 && "hidden",
+                    "disabled:opacity-50",
+                    (i !== answerKeys.length - 1 ||
+                      (!answerKeys[answerKeys.length - 2]?.file &&
+                        !answerKeys[answerKeys.length - 2]?.id)) &&
+                      "hidden",
                   )}
                 >
                   <FaTrash size={15} />
@@ -606,7 +717,7 @@ export default function AssignmentForm({
           >
             <span>
               Upload Test Case{" "}
-              {!testCases[0].file ? "(Optional)" : `(${testCases.length - 1})`}
+              {!testCases[0].type ? "(Optional)" : `(${testCases.length - 1})`}
             </span>
             <FaChevronDown size={32} />
           </h2>
@@ -630,7 +741,8 @@ export default function AssignmentForm({
                   className={cn("text-sm text-left font-light truncate flex-1")}
                   htmlFor={item.name}
                 >
-                  {item.name.toUpperCase()} : {item.file?.name || "-"}
+                  {item.name.toUpperCase()} :{" "}
+                  {item.file?.name || item.file_name || "-"}
                 </label>
 
                 <label
@@ -647,6 +759,7 @@ export default function AssignmentForm({
                     type="file"
                     name={item.name}
                     id={item.name}
+                    disabled={isFetching}
                     onChange={(e) => handleAddOptionalFile(e, "testcase")}
                     accept=".txt"
                     className="hidden"
@@ -656,14 +769,18 @@ export default function AssignmentForm({
                 </label>
 
                 <button
+                  disabled={isFetching}
                   onClick={() => handleRemoveOptionalFile("testcase")}
                   className={cn(
                     "w-fit",
                     "p-2 outline-none ml-0.5",
                     "bg-red-600 rounded-md text-white",
                     "hover:scale-105 active:scale-95 transition-all cursor-pointer",
-                    !testCases[testCases.length - 2]?.file && "hidden",
-                    i !== testCases.length - 1 && "hidden",
+                    "disabled:opacity-50",
+                    (i !== testCases.length - 1 ||
+                      (!testCases[testCases.length - 2]?.file &&
+                        !testCases[testCases.length - 2]?.id)) &&
+                      "hidden",
                   )}
                 >
                   <FaTrash size={15} />
@@ -687,14 +804,16 @@ export default function AssignmentForm({
           </button>
           <button
             onClick={() => handleSubmit(formData, "create")}
+            disabled={isFetching}
             className={cn(
               "hover:bg-thirdnary active:bg-thirdnary transition-all",
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
               "text-lg text-primary font-medium",
+              "disabled:opacity-50",
             )}
           >
-            {isEdit ? "Save" : "Create"}
+            {id ? "Save" : "Create"}
           </button>
         </div>
       </div>

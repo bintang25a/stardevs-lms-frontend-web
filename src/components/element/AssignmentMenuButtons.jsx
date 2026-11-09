@@ -1,6 +1,11 @@
+import { deleteAnnouncement } from "../../_services/announcements";
+import { deleteAssignment } from "../../_services/assignments";
+import { deleteMaterial } from "../../_services/material";
+import { deleteSection } from "../../_services/sections";
 import { cn } from "../../_utilities/cn";
 
 export default function AssignmentMenuButtons({
+  user,
   menuButtons,
   sectionId,
   contentType,
@@ -11,6 +16,13 @@ export default function AssignmentMenuButtons({
   idx,
 }) {
   const disabledIdx = contentType !== "section" ? 0 : 1;
+
+  const deleteActions = {
+    assignment: deleteAssignment,
+    material: deleteMaterial,
+    announcement: deleteAnnouncement,
+    section: deleteSection,
+  };
 
   return (
     <div
@@ -29,15 +41,19 @@ export default function AssignmentMenuButtons({
           key={mi}
           disabled={
             (m.label === "Raise" && idx === 0 + disabledIdx) ||
-            (m.label === "Lower" && idx === sortedData.length - 1 + disabledIdx)
+            (m.label === "Lower" &&
+              idx === sortedData.length - 1 + disabledIdx) ||
+            !m.role.includes(user?.role)
           }
           className={cn(
             "px-6 py-1 cursor-pointer hover:bg-gray-300 w-full",
             "disabled:text-gray-500 text-left",
             m.label === "Raise" && "border-t border-t-gray-400",
+            !m.role.includes(user?.role) && "hidden",
           )}
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
             setOpenMenu("");
 
             if (m.label === "Raise" || m.label === "Lower") {
@@ -55,6 +71,15 @@ export default function AssignmentMenuButtons({
 
             if (m.label === "Copy Link") {
               m.action(sectionId);
+            }
+
+            if (m.label === "Delete") {
+              m.action({
+                isOpen: true,
+                message: contentType,
+                action: deleteActions[contentType],
+                id: contentId,
+              });
             }
           }}
         >

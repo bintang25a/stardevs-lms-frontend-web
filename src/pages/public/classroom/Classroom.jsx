@@ -82,7 +82,9 @@ export default function Classroom() {
     return isInit ? (
       <div className="h-full"></div>
     ) : (
-      <Outlet context={{ classroom, user, setModalOpen, setEditId }} />
+      <Outlet
+        context={{ classroom, user, setModalOpen, setEditId, setRefresh }}
+      />
     );
   };
 
