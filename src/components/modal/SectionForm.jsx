@@ -14,6 +14,7 @@ export default function SectionForm({
   setModalOpen,
   setIsLoading,
   setShowToast,
+  setRefresh,
 }) {
   const tempForm = {
     title: "",
@@ -39,7 +40,7 @@ export default function SectionForm({
           title: data?.title,
           classroom_id: data?.classroom_id,
           order: data?.order,
-          date: data?.date ? res.data.date.split(" ")[0] : "",
+          date: data?.date ? data.date.split(" ")[0] : "",
           _method: "PUT",
         });
       } catch (error) {
@@ -83,6 +84,7 @@ export default function SectionForm({
       const res = id ? await updateSection(id, fd) : await createSection(fd);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
+      setRefresh((prev) => !prev);
       setFormData(tempForm);
       setMessage("");
       onClose();

@@ -9,7 +9,9 @@ import { cn } from "../../_utilities/cn";
 import { isoToLongDate } from "../../_utilities/isoToLongDate";
 import { isoToLongDateTime } from "../../_utilities/isoToLongDateTime";
 import { lowerOrder, raiseOrder } from "../../_services/actions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import AssignmentMenuButtons from "./AssignmentMenuButtons";
 
 export default function AssignmentContent({
   classroom: classroomParams,
@@ -23,6 +25,16 @@ export default function AssignmentContent({
   const [classroom, setClassroom] = useState(classroomParams);
 
   const { sections, materials, announcements, assignments } = classroom;
+  const currentUrl = window.location.href;
+
+  const [searchParams] = useSearchParams();
+  const sectionId = searchParams.get("section");
+
+  useEffect(() => {
+    if (sectionId) {
+      setOpenTrays((prev) => [...prev, Number(sectionId)]);
+    }
+  }, [sectionId]);
 
   const sortedSections = [
     ...sections?.map((s) => ({ ...s, content_type: "section" })),
@@ -92,6 +104,40 @@ export default function AssignmentContent({
     setEditId(id);
   };
 
+  const handleCopyUrl = (id) => {
+    const cleanUrl = currentUrl?.split("?")[0];
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(cleanUrl + `?section=${id}`)
+        .catch((err) => console.error("Gagal menyalin: ", err));
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = id ? cleanUrl + `?section=${id}` : cleanUrl;
+
+      textArea.style.position = "fixed";
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.opacity = "0";
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        const successful = document.execCommand("copy");
+
+        console.log(successful);
+      } catch (err) {
+        console.error("Gagal menjalankan fallback copy: ", err);
+      } finally {
+        handleMenuOpen();
+      }
+
+      document.body.removeChild(textArea);
+    }
+  };
+
   const menuButtons = [
     {
       label: "Edit",
@@ -102,6 +148,7 @@ export default function AssignmentContent({
     },
     {
       label: "Copy Link",
+      action: handleCopyUrl,
     },
     {
       label: "Raise",
@@ -214,52 +261,18 @@ export default function AssignmentContent({
                 <FaEllipsisVertical size={16} />
               </button>
 
-              <div
-                className={cn(
-                  "w-fit h-fit py-2",
-                  "absolute right-0 xl:-right-20 bottom-16 xl:bottom-20 transition-all z-50",
-                  "flex flex-col justify-start items-start gap-1",
-                  "text-lg text-black",
-                  "bg-gray-200 rounded-lg shadow-md shadow-gray-600",
-                  openMenu !== `section-${section.id}` && "hidden",
-                  i < 2 && "top-20",
+              <AssignmentMenuButtons
+                idx={i}
+                menuButtons={menuButtons}
+                sectionId={section?.id}
+                contentType={"section"}
+                contentId={section?.id}
+                openMenu={openMenu}
+                setOpenMenu={setOpenMenu}
+                sortedData={sortedSections.filter(
+                  (s) => s.title !== "No Sections",
                 )}
-              >
-                {menuButtons.map((m, mi) => (
-                  <button
-                    key={mi}
-                    className={cn(
-                      "px-6 py-1 cursor-pointer hover:bg-gray-300 w-full",
-                      "disabled:text-gray-500 text-left",
-                      m.label === "Raise" && "border-t border-t-gray-400",
-                    )}
-                    disabled={
-                      (m.label === "Raise" && i === 1) ||
-                      (m.label === "Lower" && i === sortedSections.length - 1)
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-
-                      if (m.label === "Raise" || m.label === "Lower") {
-                        m.action(
-                          section?.id,
-                          "section",
-                          sortedSections.filter(
-                            (s) => s.title !== "No Sections",
-                          ),
-                          m.label.toLowerCase(),
-                        );
-                      }
-
-                      if (m.label === "Edit") {
-                        m.action("section", section?.id);
-                      }
-                    }}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+              />
             </div>
 
             <div
@@ -320,52 +333,16 @@ export default function AssignmentContent({
                     <FaEllipsisVertical size={16} />
                   </button>
 
-                  <div
-                    className={cn(
-                      "w-fit h-fit py-2",
-                      "absolute right-0 xl:-right-20 bottom-16 xl:bottom-20 transition-all z-100",
-                      "flex flex-col justify-start items-start gap-1",
-                      "text-lg text-black",
-                      "bg-gray-200 rounded-lg shadow-md shadow-gray-600",
-                      openMenu !== `${content?.content_type}-${content.id}` &&
-                        "hidden",
-                      i < 2 && "top-20",
-                    )}
-                  >
-                    {menuButtons.map((m, mi) => (
-                      <button
-                        key={mi}
-                        className={cn(
-                          "px-6 py-1 cursor-pointer hover:bg-gray-300 w-full",
-                          "disabled:text-gray-500 text-left",
-                          m.label === "Raise" && "border-t border-t-gray-400",
-                        )}
-                        disabled={
-                          (m.label === "Raise" && i === 0) ||
-                          (m.label === "Lower" &&
-                            i === sortedContents.length - 1)
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-
-                          if (m.label === "Raise" || m.label === "Lower") {
-                            m.action(
-                              content?.id,
-                              content?.content_type,
-                              sortedContents,
-                              m.label.toLowerCase(),
-                            );
-                          }
-
-                          if (m.label === "Edit") {
-                            m.action(content?.content_type, content?.id);
-                          }
-                        }}
-                      >
-                        {m.label}
-                      </button>
-                    ))}
-                  </div>
+                  <AssignmentMenuButtons
+                    idx={i}
+                    menuButtons={menuButtons}
+                    sectionId={section?.id}
+                    contentType={content?.content_type}
+                    contentId={content?.id}
+                    openMenu={openMenu}
+                    setOpenMenu={setOpenMenu}
+                    sortedData={sortedContents}
+                  />
                 </div>
               ))}
             </div>

@@ -123,6 +123,7 @@ export default function MaterialForm({
         : await createMaterial(payload);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
+      setRefresh((prev) => !prev);
       setFormData(tempForm);
       setMessage("");
       setFiles([]);

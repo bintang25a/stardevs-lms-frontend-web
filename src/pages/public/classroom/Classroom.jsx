@@ -30,6 +30,7 @@ export default function Classroom() {
   const [classroom, setClassroom] = useState(null);
   const [modalOpen, setModalOpen] = useState(null);
   const [editId, setEditId] = useState(null);
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     const classroom_ids = user.classroom_ids || [];
@@ -56,6 +57,26 @@ export default function Classroom() {
       fetchData();
     }
   }, [id]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        const data = await showClassroom(id);
+
+        setClassroom(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (!isInit) {
+      fetchData();
+    }
+  }, [refresh]);
 
   const Main = () => {
     return isInit ? (
@@ -92,6 +113,7 @@ export default function Classroom() {
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
+        setRefresh={setRefresh}
       />
 
       <AnnouncementForm
@@ -102,6 +124,7 @@ export default function Classroom() {
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
+        setRefresh={setRefresh}
       />
 
       <MaterialForm
@@ -112,6 +135,7 @@ export default function Classroom() {
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
+        setRefresh={setRefresh}
       />
 
       <AssignmentForm
@@ -123,6 +147,7 @@ export default function Classroom() {
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
+        setRefresh={setRefresh}
       />
     </div>
   );

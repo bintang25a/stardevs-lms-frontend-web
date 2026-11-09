@@ -1,19 +1,33 @@
 import API from "../_api";
 import message from "../_utilities/errorMessage";
 
+let classroomPromise = null;
+
 export const getClassrooms = async () => {
   const { data: response } = await API.get("/classrooms");
   return response.data;
 };
 
 export const showClassroom = async (id) => {
-  try {
-    const { data: response } = await API.get(`/classrooms/${id}`);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    throw message(error);
+  if (classroomPromise) {
+    return classroomPromise;
   }
+
+  classroomPromise = (async () => {
+    try {
+      const { data: response } = await API.get(`/classrooms/${id}`);
+
+      return response.data;
+    } catch (error) {
+      console.log(error);
+
+      throw message(error);
+    } finally {
+      classroomPromise = null;
+    }
+  })();
+
+  return classroomPromise;
 };
 
 export const createClassroom = async (data) => {

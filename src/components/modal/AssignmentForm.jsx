@@ -107,6 +107,7 @@ export default function AssignmentForm({
       const res = await createAssignment(payload);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
+      setRefresh((prev) => !prev);
       setFormData(tempForm);
       setShowFiles([]);
       setMessage("");

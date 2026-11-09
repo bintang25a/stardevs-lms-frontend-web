@@ -84,6 +84,7 @@ export default function AnnouncementForm({
         : await createAnnouncement(fd);
 
       setShowToast({ isOpen: true, title: "Success", message: res?.message });
+      setRefresh((prev) => !prev);
       setFormData(tempForm);
       setMessage("");
       onClose();
