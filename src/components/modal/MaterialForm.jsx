@@ -15,6 +15,7 @@ export default function MaterialForm({
   setModalOpen,
   setIsLoading,
   setShowToast,
+  setRefresh,
 }) {
   const tempForm = {
     title: "",
@@ -191,7 +192,7 @@ export default function MaterialForm({
           "bg-gray-200  rounded-xl shadow-sm shadow-gray-400",
           "pt-12 px-8 pb-4",
           "flex flex-col justify-start items-start gap-4",
-          "overflow-auto",
+          "overflow-auto"
         )}
       >
         <h2 className={cn("text-xl text-primary font-semibold")}>
@@ -223,7 +224,7 @@ export default function MaterialForm({
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
-              "disabled:opacity-50",
+              "disabled:opacity-50"
             )}
           />
         </div>
@@ -249,7 +250,7 @@ export default function MaterialForm({
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary",
-              "disabled:opacity-50",
+              "disabled:opacity-50"
             )}
           />
         </div>
@@ -265,7 +266,7 @@ export default function MaterialForm({
           <div
             className={cn(
               "w-full",
-              "flex flex-wrap xl:flex-row gap-1 justify-center items-center",
+              "flex flex-wrap xl:flex-row gap-1 justify-center items-center"
             )}
           >
             <label
@@ -275,7 +276,7 @@ export default function MaterialForm({
                 "p-2 rounded-t-md outline-none",
                 "text-sm text-center text-white font-normal truncate",
                 "bg-primary rounded-md",
-                "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                "hover:scale-105 active:scale-95 transition-all cursor-pointer"
               )}
             >
               Choose File
@@ -294,7 +295,7 @@ export default function MaterialForm({
             <span
               className={cn(
                 "w-full xl:w-fit h-full",
-                "flex justify-center items-center",
+                "flex justify-center items-center"
               )}
             >
               Or
@@ -314,7 +315,7 @@ export default function MaterialForm({
                 "p-2 rounded-t-md outline-none",
                 "text-sm text-primary font-normal",
                 "hover:shadow-sm hover:shadow-primary",
-                "disabled:opacity-50",
+                "disabled:opacity-50"
               )}
             />
 
@@ -325,7 +326,7 @@ export default function MaterialForm({
                 "flex justify-center items-center p-1",
                 "bg-primary rounded-md",
                 "text-white",
-                "hover:scale-105 active:scale-95 transition-all cursor-pointer",
+                "hover:scale-105 active:scale-95 transition-all cursor-pointer"
               )}
             >
               <FaLink size={20} />
@@ -335,7 +336,7 @@ export default function MaterialForm({
           <div
             className={cn(
               "w-full mt-2",
-              "flex flex-wrap gap-1 justify-start items-center",
+              "flex flex-wrap gap-1 justify-start items-center"
             )}
           >
             {files.map((file, i) => (
@@ -345,7 +346,7 @@ export default function MaterialForm({
                   "w-fit max-w-40 ",
                   "bg-gray-400 rounded-full",
                   "py-1 px-3",
-                  "flex justify-between items-center gap-1",
+                  "flex justify-between items-center gap-1"
                 )}
               >
                 <span className="text-black text-sm font-light truncate">
@@ -382,7 +383,7 @@ export default function MaterialForm({
               "p-2 rounded-t-md outline-none",
               "text-sm text-primary font-normal",
               "hover:shadow-sm hover:shadow-primary cursor-pointer",
-              "disabled:opacity-50",
+              "disabled:opacity-50"
             )}
           >
             <option value="">Select Section (optional)</option>
@@ -401,7 +402,7 @@ export default function MaterialForm({
               "hover:bg-thirdnary active:bg-thirdnary transition-all",
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
-              "text-lg text-primary font-medium",
+              "text-lg text-primary font-medium"
             )}
           >
             Batal
@@ -414,7 +415,7 @@ export default function MaterialForm({
               "py-1 px-3 rounded-2xl",
               "cursor-pointer",
               "text-lg text-primary font-medium",
-              "disabled:opacity-50",
+              "disabled:opacity-50"
             )}
           >
             {id ? "Save" : "Create"}
