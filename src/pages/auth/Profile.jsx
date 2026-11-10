@@ -2,6 +2,7 @@ import { useOutletContext } from "react-router-dom";
 import { cn } from "../../_utilities/cn";
 import { useState } from "react";
 import { updateProfile } from "../../_services/auth";
+import NotificationToast from "../../components/modal/NotificationToast";
 
 export default function Profile() {
   const { user, setIsLoading } = useOutletContext();
@@ -17,6 +18,12 @@ export default function Profile() {
   const [formData, setFormData] = useState(tempForm);
   const [isChange, setIsChange] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showToast, setShowToast] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -37,6 +44,8 @@ export default function Profile() {
   };
 
   const handleSubmit = async () => {
+    setMessage("");
+
     if (!isEdit) {
       setIsEdit(true);
       return;
@@ -64,11 +73,13 @@ export default function Profile() {
 
       const message = await updateProfile(payload);
 
-      console.log(message);
+      setShowToast({ isOpen: true, title: "Profile Updated", message });
       setIsEdit(false);
       setIsChange(false);
     } catch (error) {
       console.log(error);
+
+      setMessage(error);
     } finally {
       setIsLoading(false);
     }
@@ -102,9 +113,10 @@ export default function Profile() {
             htmlFor="photo"
             className={cn(
               "max-w-16 max-h-16 xl:max-w-20 xl:max-h-20 w-100 h-100 rounded-full",
-              "bg-blue-500 overflow-hidden",
+              "overflow-hidden",
               "flex justify-center items-center",
               isEdit && "cursor-pointer hover:opacity-60 transition-all",
+              user.photo && !isEdit ? "border border-gray-500" : "bg-blue-500",
             )}
           >
             {user.photo && !isEdit ? (
@@ -131,7 +143,7 @@ export default function Profile() {
             type="file"
             id="photo"
             name="photo"
-            accept="images/*"
+            accept=".jpg, .jpeg, .png, .webp"
             className="hidden"
             onChange={handleChange}
           />
@@ -187,6 +199,12 @@ export default function Profile() {
             "relative",
           )}
         >
+          <span
+            className={cn("text-sm text-red-600 w-full", !message && "hidden")}
+          >
+            {message}
+          </span>
+
           <div
             className={cn(
               "flex-1 w-full min-w-full md:min-w-2/5",
@@ -393,6 +411,13 @@ export default function Profile() {
           </div>
         </main>
       </div>
+
+      <NotificationToast
+        onClose={() => setShowToast({ ...showToast, isOpen: false })}
+        isOpen={showToast.isOpen}
+        title={showToast.title}
+        message={showToast.message}
+      />
     </div>
   );
 }

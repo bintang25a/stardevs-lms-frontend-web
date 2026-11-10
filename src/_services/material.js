@@ -1,19 +1,33 @@
 import API from "../_api";
 import message from "../_utilities/errorMessage";
 
+let materialPromise = null;
+
 export const getMaterials = async () => {
   const { data: response } = await API.get("/materials");
   return response;
 };
 
 export const showMaterial = async (id) => {
-  try {
-    const { data: response } = await API.get(`/materials/${id}`);
-    return response;
-  } catch (error) {
-    console.log(error);
-    throw message(error);
+  if (materialPromise) {
+    return materialPromise;
   }
+
+  materialPromise = (async () => {
+    try {
+      const { data: response } = await API.get(`/materials/${id}`);
+
+      return response;
+    } catch (error) {
+      console.log(error);
+
+      throw message(error);
+    } finally {
+      materialPromise = null;
+    }
+  })();
+
+  return materialPromise;
 };
 
 export const createMaterial = async (data) => {

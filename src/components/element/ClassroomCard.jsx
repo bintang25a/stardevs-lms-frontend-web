@@ -57,16 +57,14 @@ export default function ClassroomCard({
       <Link
         to={`${data?.id}`}
         className={cn(
-          "h-3/10 px-4",
+          "w-full h-3/10 px-4",
           "bg-primary",
           "text-gray-50",
           "flex flex-col justify-center items-start",
           "hover:underline transition-all",
         )}
       >
-        <h3 className={cn("font-semibold text-sm xl:text-md truncate")}>
-          {data?.name}
-        </h3>
+        <h3 className={cn("font-semibold text-sm xl:text-md")}>{data?.name}</h3>
         <span className={cn("font-light text-sm")}>
           Schedule: {isoToSchedule(data.schedule)}
         </span>

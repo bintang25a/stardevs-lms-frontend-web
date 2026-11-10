@@ -8,7 +8,7 @@ import {
   getClassrooms,
   updateClassroom,
 } from "../../../_services/classrooms";
-import { addMember, removeMember } from "../../../_services/member";
+import { memberJoin, memberLeave } from "../../../_services/member";
 import ClassroomForm from "../../../components/modal/ClassroomForm";
 import ClassroomCard from "../../../components/element/ClassroomCard";
 import ClassroomDelete from "../../../components/modal/ClassroomDelete";
@@ -16,6 +16,7 @@ import ClassroomDelete from "../../../components/modal/ClassroomDelete";
 export default function Classrooms() {
   const { setIsLoading, user } = useOutletContext();
 
+  const [isInit, setIsInit] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,6 +39,7 @@ export default function Classrooms() {
         console.log(error);
       } finally {
         setIsLoading(false);
+        setIsInit(false);
       }
     };
 
@@ -84,7 +86,7 @@ export default function Classrooms() {
         };
 
         resData = formData.isLeft
-          ? await removeMember(leaveData)
+          ? await memberLeave(leaveData)
           : await deleteClassroom(deleteData?.id);
 
         const updatedClassrooms = classrooms.filter(
@@ -115,7 +117,7 @@ export default function Classrooms() {
         };
 
         resData = formData.isJoin
-          ? await addMember(joinData)
+          ? await memberJoin(joinData)
           : await createClassroom(formData);
 
         navigate(`/classrooms/${resData?.id}`);
@@ -181,10 +183,21 @@ export default function Classrooms() {
       <div
         className={cn(
           "rounded-2xl bg-gray-100",
-          "w-full h-full p-4",
+          "w-full h-full p-4 relative",
           "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4",
         )}
       >
+        <span
+          className={cn(
+            "absolute inset-0 m-auto w-fit h-fit",
+            "text-lg text-black font-medium",
+            (classrooms.length > 0 || isInit) && "hidden",
+          )}
+        >
+          You are not in any Classrooms, Please Join with Code
+          {user?.role === "asisten" && " or Create one"}
+        </span>
+
         {classrooms?.map((cl, i) => (
           <ClassroomCard
             key={i}

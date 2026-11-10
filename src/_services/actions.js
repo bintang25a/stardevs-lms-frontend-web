@@ -1,19 +1,26 @@
 import API from "../_api";
 import message from "../_utilities/errorMessage";
 
-export const getAnnouncements = async () => {
-  const { data: response } = await API.get("/announcements");
-  return response;
-};
+export const fileDownload = async (id, fileName = "downloaded-file") => {
+  const response = await API.get(`/actions/file-download/${id}`, {
+    responseType: "blob",
+  });
 
-export const showAnnouncement = async (id) => {
-  try {
-    const { data: response } = await API.get(`/announcements/${id}`);
-    return response;
-  } catch (error) {
-    console.log(error);
-    throw message(error);
-  }
+  console.log(response);
+
+  const blob = new Blob([response.data]);
+  const blobUrl = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
+  link.click();
+
+  link.parentNode.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
+
+  return true;
 };
 
 export const raiseOrder = async (data) => {

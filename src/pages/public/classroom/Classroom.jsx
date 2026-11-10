@@ -80,10 +80,18 @@ export default function Classroom() {
 
   const Main = () => {
     return isInit ? (
-      <div className="h-full"></div>
+      <div className="h-full" />
     ) : (
       <Outlet
-        context={{ classroom, user, setModalOpen, setEditId, setRefresh }}
+        context={{
+          classroom,
+          user,
+          setModalOpen,
+          setEditId,
+          setRefresh,
+          setShowToast,
+          setIsLoading,
+        }}
       />
     );
   };

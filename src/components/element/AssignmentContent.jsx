@@ -219,6 +219,10 @@ export default function AssignmentContent({
           (a, b) => a?.order - b?.order,
         );
 
+        if (sortedContents.length < 1 && section.title === "No Sections") {
+          return;
+        }
+
         return (
           <div
             key={section?.id}
@@ -302,7 +306,7 @@ export default function AssignmentContent({
                 "transition-all duration-100 ease-in-out",
                 openTrays.includes(section?.id)
                   ? "max-h-125 opacity-100"
-                  : "max-h-0 opacity-0",
+                  : "max-h-0 opacity-0 overflow-hidden",
               )}
             >
               {sortedContents?.map((content, i) => {

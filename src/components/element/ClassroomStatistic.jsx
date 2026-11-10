@@ -38,7 +38,8 @@ export default function ClassroomStatistic({ classroom }) {
     <div
       className={cn(
         "flex-1",
-        "w-fit min-w-fit xl:min-w-1/2 h-auto min-h-40 xl:min-h-60 border border-primary rounded-md p-4",
+        "w-fit min-w-fit xl:min-w-1/2 h-auto min-h-40 xl:min-h-60 xl:max-h-70",
+        "border border-primary rounded-md p-4",
         "grid grid-cols-2 items-stretch justify-start gap-4",
       )}
     >

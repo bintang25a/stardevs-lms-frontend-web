@@ -81,7 +81,11 @@ export default function PublicHeader({
         </div>
         <div className={cn("w-12 h-12", "rounded-full overflow-hidden")}>
           {user.photo ? (
-            <img src={user.photo} alt="" />
+            <img
+              className="w-full h-full object-cover"
+              src={user.photo}
+              alt=""
+            />
           ) : (
             <div className="bg-primary w-full h-full flex justify-center items-center">
               :D
