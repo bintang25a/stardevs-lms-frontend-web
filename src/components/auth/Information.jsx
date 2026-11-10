@@ -51,17 +51,17 @@ export default function Information() {
   return (
     <div
       className={cn(
-        "h-full w-full xl:w-1/2",
+        "h-screen xl:h-full w-full xl:w-1/2",
         "bg-linear-to-br from-thirdnary to-primary",
         "flex flex-col justify-center items-center gap-8",
-        "p-8 md:p-12 xl:p-16 rounded-r-xl"
+        "p-8 md:p-12 xl:p-16 rounded-r-xl",
       )}
     >
       <header
         className={cn(
           "w-full",
           "flex justify-start items-center gap-2",
-          "hover:scale-105 hover:rotate-2 transition-all"
+          "hover:scale-105 hover:rotate-2 transition-all",
         )}
       >
         <div className={cn("text-white")}>
@@ -90,7 +90,7 @@ export default function Information() {
       <footer
         className={cn(
           "w-full",
-          "flex flex-col justify-center items-center gap-4"
+          "flex flex-col justify-center items-center gap-4",
         )}
       >
         <h2 className={cn("text-white text-2xl font-semibold")}>
@@ -100,7 +100,7 @@ export default function Information() {
           className={cn(
             "w-full",
             "flex flex-wrap justify-center items-center gap-4",
-            "text-white text-xl"
+            "text-white text-xl",
           )}
         >
           {socials.map((item, i) => (
@@ -114,7 +114,7 @@ export default function Information() {
                 "flex justify-center items-center gap-1",
                 "truncate font-medium",
                 "hover:scale-105 hover:text-thirdnary transition-all",
-                item.user === "Stardevs" ? "text-orange-400" : "text-white"
+                item.user === "Stardevs" ? "text-orange-400" : "text-white",
               )}
             >
               {item.icon}

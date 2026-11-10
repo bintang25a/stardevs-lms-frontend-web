@@ -4,6 +4,7 @@ import Information from "../components/auth/Information";
 import { useEffect, useState } from "react";
 import LoadingBar from "../components/modal/LoadingBar";
 import { profile } from "../_services/auth";
+import { FallingLeaves } from "falling-leaves/react";
 
 export default function AuthLayout() {
   const [isLoading, setIsLoading] = useState(true);
@@ -46,11 +47,13 @@ export default function AuthLayout() {
   return (
     <div
       className={cn(
-        "h-screen w-screen",
+        "h-fit xl:h-screen w-screen",
         "flex flex-col-reverse xl:flex-row",
-        "overflow-y-auto"
+        "overflow-y-auto",
       )}
     >
+      <FallingLeaves fullScreen shapes={["cherry", "oak"]} />
+
       {!isInit && <Information />}
       {!isInit && <Outlet context={{ isLoading, setIsLoading }} />}
 

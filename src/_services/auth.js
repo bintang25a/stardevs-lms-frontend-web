@@ -54,6 +54,17 @@ export const profile = async () => {
   return profilePromise;
 };
 
+export const updateProfile = async (data) => {
+  try {
+    const { data: response } = await API.post("/update-user", data);
+
+    return response?.message;
+  } catch (error) {
+    console.log(error);
+    throw message(error);
+  }
+};
+
 // Fungsi Validasi token
 export const validateToken = async () => {
   if (typeof window === "undefined") return false;

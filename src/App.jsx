@@ -7,7 +7,9 @@ import PublicLayout from "./layouts/PublicLayout";
 import Classrooms from "./pages/public/classroom/Classrooms";
 import Classroom from "./pages/public/classroom/Classroom";
 import ControlPanel from "./pages/public/classroom/ControlPanel";
-import Assignments from "./pages/public/classroom/Assignments";
+import Assignments from "./pages/public/assignment/Assignments";
+import Members from "./pages/public/member/Members";
+import Profile from "./pages/auth/Profile";
 
 export default function App() {
   return (
@@ -20,13 +22,14 @@ export default function App() {
         </Route>
 
         <Route path="/" element={<PublicLayout />}>
-          <Route index element={<h1>Keren</h1>}></Route>
+          <Route index element={<h1>DASHBOARD</h1>}></Route>
           <Route path="classrooms" element={<Classrooms />} />
           <Route path="classrooms/:id" element={<Classroom />}>
             <Route index element={<ControlPanel />} />
             <Route path="assignments" element={<Assignments />} />
-            <Route path="members"></Route>
+            <Route path="members" element={<Members />} />
           </Route>
+          <Route path="profile" element={<Profile />} />
         </Route>
         <Route path="/admin" element={<header>Haloo</header>}></Route>
       </Routes>
