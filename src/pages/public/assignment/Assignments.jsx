@@ -5,7 +5,7 @@ import AssignmentNav from "../../../components/element/AssignmentNav";
 import AssignmentContent from "../../../components/element/AssignmentContent";
 
 export default function Assignments() {
-  const { user, classroom, setModalOpen, setEditId, setRefresh } =
+  const { user, classroom, setModalOpen, setEditData, setRefresh } =
     useOutletContext();
 
   const [openTrays, setOpenTrays] = useState([]);
@@ -44,7 +44,7 @@ export default function Assignments() {
         openMenu={openMenu}
         setOpenMenu={setOpenMenu}
         setModalOpen={setModalOpen}
-        setEditId={setEditId}
+        setEditData={setEditData}
         setRefresh={setRefresh}
       />
     </div>

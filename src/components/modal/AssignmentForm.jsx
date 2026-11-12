@@ -9,9 +9,9 @@ import {
 
 export default function AssignmentForm({
   isOpen,
-  id,
+  data,
   classroom,
-  setEditId,
+  setEditData,
   setModalOpen,
   setIsLoading,
   setShowToast,
@@ -38,6 +38,7 @@ export default function AssignmentForm({
   const [fileUrl, setFileUrl] = useState("");
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
+  const [id, setId] = useState(null);
 
   const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
   const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -48,22 +49,18 @@ export default function AssignmentForm({
       setIsFetching(true);
 
       try {
-        const { data } = await showAssignment(id);
+        let item = null;
 
-        setFormData({
-          ...formData,
-          title: data?.title,
-          description: data?.description || "",
-          started_at: data?.started_at,
-          ended_at: data?.ended_at,
-          allow_overtime: data?.allow_overtime ? "1" : "0",
-          section_id: data?.section_id || "",
-          order: data?.order,
-          _method: "PUT",
-        });
+        if (typeof data === "string" || typeof data === "number") {
+          const { data: resData } = await showAssignment(data);
+
+          item = resData;
+        } else {
+          item = data;
+        }
 
         const convertFiles = [
-          ...data.files.map((f) => ({
+          ...item.files.map((f) => ({
             ...f,
             url: f?.file_url,
             name: f?.file_name,
@@ -71,7 +68,18 @@ export default function AssignmentForm({
           })),
         ];
 
-        console.log(convertFiles.filter((f) => f.type === "answerkey"));
+        setFormData({
+          ...formData,
+          title: item?.title,
+          description: item?.description || "",
+          started_at: item?.started_at,
+          ended_at: item?.ended_at,
+          allow_overtime: item?.allow_overtime ? "1" : "0",
+          section_id: item?.section_id || "",
+          order: item?.order,
+          files: convertFiles.filter((f) => f.type === "assignment"),
+          _method: "PUT",
+        });
 
         const tempKeys = convertFiles.filter((f) => f.type === "answerkey");
         const tempCases = convertFiles.filter((f) => f.type === "testcase");
@@ -87,6 +95,8 @@ export default function AssignmentForm({
           ...tempCases,
           { name: `test-case-${tempCases.length + 1}` },
         ]);
+
+        setId(item?.id);
       } catch (error) {
         console.log(error);
       } finally {
@@ -95,10 +105,10 @@ export default function AssignmentForm({
       }
     };
 
-    if (id && isOpen) {
+    if (data && isOpen) {
       fetchData();
     }
-  }, [id]);
+  }, [data]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -244,7 +254,7 @@ export default function AssignmentForm({
     setAnswerKeys([{ name: "answer-key-1" }]);
     setTestCases([{ name: "test-case-1" }]);
     setMessage("");
-    setEditId(null);
+    setEditData(null);
     setShowFiles([]);
     setModalOpen(null);
     setFormData(tempForm);

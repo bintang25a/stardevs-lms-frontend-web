@@ -7,10 +7,10 @@ import {
 } from "../../_services/sections";
 
 export default function SectionForm({
-  id,
+  data,
   isOpen,
   classroom,
-  setEditId,
+  setEditData,
   setModalOpen,
   setIsLoading,
   setShowToast,
@@ -26,6 +26,7 @@ export default function SectionForm({
   const [isFetching, setIsFetching] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
+  const [id, setId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,16 +34,26 @@ export default function SectionForm({
       setIsFetching(true);
 
       try {
-        const { data } = await showSection(id);
+        let item = null;
+
+        if (typeof data === "string" || typeof data === "number") {
+          const { data: resData } = await showSection(data);
+
+          item = resData;
+        } else {
+          item = data;
+        }
 
         setFormData({
           ...formData,
-          title: data?.title,
-          classroom_id: data?.classroom_id,
-          order: data?.order,
-          date: data?.date ? data.date.split(" ")[0] : "",
+          title: item?.title,
+          classroom_id: item?.classroom_id,
+          order: item?.order,
+          date: item?.date ? item.date.split(" ")[0] : "",
           _method: "PUT",
         });
+
+        setId(item?.id);
       } catch (error) {
         console.log(error);
       } finally {
@@ -51,10 +62,10 @@ export default function SectionForm({
       }
     };
 
-    if (id && isOpen) {
+    if (data && isOpen) {
       fetchData();
     }
-  }, [id]);
+  }, [data]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -100,7 +111,7 @@ export default function SectionForm({
   const onClose = () => {
     setModalOpen(null);
     setMessage("");
-    setEditId(null);
+    setEditData(null);
     setFormData(tempForm);
   };
 

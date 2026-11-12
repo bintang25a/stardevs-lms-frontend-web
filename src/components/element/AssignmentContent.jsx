@@ -23,7 +23,7 @@ export default function AssignmentContent({
   openMenu,
   setOpenMenu,
   setModalOpen,
-  setEditId,
+  setEditData,
   setRefresh,
 }) {
   const [classroom, setClassroom] = useState(classroomParams);
@@ -112,9 +112,9 @@ export default function AssignmentContent({
     }
   };
 
-  const handleModalOpen = (type, id) => {
+  const handleModalOpen = (type, data) => {
     setModalOpen(type);
-    setEditId(id);
+    setEditData(data);
   };
 
   const handleCopyUrl = (id) => {

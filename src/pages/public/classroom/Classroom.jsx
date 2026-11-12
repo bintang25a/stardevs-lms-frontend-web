@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Outlet,
   useNavigate,
@@ -29,7 +29,7 @@ export default function Classroom() {
   const [isInit, setIsInit] = useState(true);
   const [classroom, setClassroom] = useState(null);
   const [modalOpen, setModalOpen] = useState(null);
-  const [editId, setEditId] = useState(null);
+  const [editData, setEditData] = useState(null);
   const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Classroom() {
 
       try {
         const data = await showClassroom(id);
-
+        // console.log(data);
         setClassroom(data);
       } catch (error) {
         console.log(error);
@@ -84,13 +84,12 @@ export default function Classroom() {
     ) : (
       <Outlet
         context={{
-          classroom,
           user,
+          classroom,
           setModalOpen,
-          setEditId,
+          setEditData,
           setRefresh,
           setShowToast,
-          setIsLoading,
         }}
       />
     );
@@ -117,9 +116,9 @@ export default function Classroom() {
 
       <SectionForm
         isOpen={modalOpen === "section"}
-        id={editId}
+        data={editData}
         classroom={classroom}
-        setEditId={setEditId}
+        setEditData={setEditData}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -128,9 +127,9 @@ export default function Classroom() {
 
       <AnnouncementForm
         isOpen={modalOpen === "announcement"}
-        id={editId}
+        data={editData}
         classroom={classroom}
-        setEditId={setEditId}
+        setEditData={setEditData}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -139,9 +138,9 @@ export default function Classroom() {
 
       <MaterialForm
         isOpen={modalOpen === "material"}
-        id={editId}
+        data={editData}
         classroom={classroom}
-        setEditId={setEditId}
+        setEditData={setEditData}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}
@@ -150,10 +149,9 @@ export default function Classroom() {
 
       <AssignmentForm
         isOpen={modalOpen === "assignment"}
-        isEdit={id}
-        id={editId}
+        data={editData}
         classroom={classroom}
-        setEditId={setEditId}
+        setEditData={setEditData}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}
         setShowToast={setShowToast}

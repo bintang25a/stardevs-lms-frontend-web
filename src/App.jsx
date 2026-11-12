@@ -8,6 +8,7 @@ import Classrooms from "./pages/public/classroom/Classrooms";
 import Classroom from "./pages/public/classroom/Classroom";
 import ControlPanel from "./pages/public/panel/ControlPanel";
 import Assignments from "./pages/public/assignment/Assignments";
+import Assignment from "./pages/public/assignment/Assignment";
 import Members from "./pages/public/member/Members";
 import Profile from "./pages/auth/Profile";
 import Dashboard from "./pages/public/panel/Dashboard";
@@ -30,7 +31,7 @@ export default function App() {
             <Route index element={<ControlPanel />} />
             <Route path="members" element={<Members />} />
             <Route path="assignments" element={<Assignments />} />
-            <Route path="assignments/:assignmentId" element={<Material />} />
+            <Route path="assignments/:assignmentId" element={<Assignment />} />
             <Route path="materials/:materialId" element={<Material />} />
           </Route>
           <Route path="profile" element={<Profile />} />

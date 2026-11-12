@@ -1,27 +1,51 @@
-import { useOutletContext, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { cn } from "../../../_utilities/cn";
-import { FaArrowUpRightFromSquare, FaBook, FaDownload } from "react-icons/fa6";
+import {
+  FaBook,
+  FaDownload,
+  FaEllipsisVertical,
+  FaArrowUpRightFromSquare,
+} from "react-icons/fa6";
 import { useEffect, useState } from "react";
-import { showMaterial } from "../../../_services/material";
 import { fileDownload } from "../../../_services/actions";
 import { isoToLongDate } from "../../../_utilities/isoToLongDate";
 import { isoToSchedule } from "../../../_utilities/isoToSchedule";
+import ConfirmDelete from "../../../components/modal/ConfirmDelete";
+import { deleteMaterial } from "../../../_services/material";
 
 export default function Material() {
-  const { user, classroom, setModalOpen, setEditId, setRefresh } =
+  const { user, classroom, setModalOpen, setEditData, setRefresh } =
     useOutletContext();
 
-  const { materialId } = useParams();
+  const { id, materialId } = useParams();
+
+  const navigate = useNavigate();
 
   const [isInit, setIsInit] = useState(true);
   const [material, setMaterial] = useState(null);
+  const [openMenu, setOpenMenu] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState({
+    isOpen: false,
+    message: "Material",
+    action: deleteMaterial,
+    id: materialId,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await showMaterial(materialId);
-        console.log(data);
-        setMaterial(data);
+        const data =
+          classroom?.materials?.find((data) => data.id == materialId) || null;
+
+        if (!data) {
+          navigate(`/classrooms/${id}/assignments`, { replace: true });
+        }
+
+        const files = classroom?.files?.filter(
+          (file) => file.class_id == materialId && file.type === "material",
+        );
+
+        setMaterial({ ...data, files });
       } catch (error) {
         console.log(error);
       } finally {
@@ -43,6 +67,11 @@ export default function Material() {
     await fileDownload(id, name);
   };
 
+  const handleModalOpen = () => {
+    setModalOpen("material");
+    setEditData(material);
+  };
+
   return (
     <div
       className={cn(
@@ -56,6 +85,7 @@ export default function Material() {
           "w-full xl:w-4/5 h-full px-8 py-8",
           "bg-gray-100 rounded-lg shadow-xs shadow-gray-500",
           "flex flex-col justify-start items-start gap-4",
+          "relative",
           isInit && "hidden",
         )}
       >
@@ -138,6 +168,64 @@ export default function Material() {
               );
             })}
           </div>
+
+          <div
+            className={cn(
+              "absolute right-2 top-2",
+              "flex flex-col justify-start items-end gap-1",
+              user.role === "praktikan" && "hidden",
+            )}
+          >
+            <button
+              onClick={() => setOpenMenu(!openMenu)}
+              className={cn(
+                "hover:bg-gray-300",
+                "p-1 rounded-md",
+                "transition-all cursor-pointer",
+              )}
+            >
+              <FaEllipsisVertical size={24} />
+            </button>
+
+            <div
+              className={cn(
+                "w-fit h-fit py-2",
+                "flex flex-col justify-start items-start gap-1",
+                "text-lg text-black",
+                "bg-gray-200 rounded-lg shadow-md shadow-gray-600",
+                !openMenu && "hidden",
+              )}
+            >
+              <button
+                onClick={handleModalOpen}
+                className={cn(
+                  "px-6 py-1 w-full",
+                  "cursor-pointer hover:bg-gray-300 ",
+                  "disabled:text-gray-500 text-left",
+                )}
+              >
+                Edit
+              </button>
+              <button
+                onClick={() =>
+                  setConfirmDelete({ ...confirmDelete, isOpen: true })
+                }
+                className={cn(
+                  "px-6 py-1 w-full",
+                  "cursor-pointer hover:bg-gray-300 ",
+                  "disabled:text-gray-500 text-left",
+                )}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <ConfirmDelete
+            confirmDelete={confirmDelete}
+            setConfirmDelete={setConfirmDelete}
+            setRefresh={setRefresh}
+          />
         </main>
 
         <footer
@@ -146,11 +234,12 @@ export default function Material() {
             "text-md text-secondary font-normal",
           )}
         >
-          <span>Created At: {isoToLongDate(material?.created_at)}</span>
+          <span className={cn("hidden md:block")}>
+            Created At: {isoToLongDate(material?.created_at)}
+          </span>
 
           <span>
-            Class: {material?.classroom?.name} |{" "}
-            {isoToSchedule(material?.classroom?.schedule)}
+            {classroom?.name} | {isoToSchedule(classroom?.schedule)}
           </span>
         </footer>
       </div>

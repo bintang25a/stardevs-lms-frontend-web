@@ -8,9 +8,9 @@ import {
 
 export default function AnnouncementForm({
   isOpen,
-  id,
+  data,
   classroom,
-  setEditId,
+  setEditData,
   setModalOpen,
   setIsLoading,
   setShowToast,
@@ -27,6 +27,7 @@ export default function AnnouncementForm({
   const [isFetching, setIsFetching] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
+  const [id, setId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,17 +35,27 @@ export default function AnnouncementForm({
       setIsFetching(true);
 
       try {
-        const { data } = await showAnnouncement(id);
+        let item = null;
+
+        if (typeof data === "string" || typeof data === "number") {
+          const { data: resData } = await showAnnouncement(data);
+
+          item = resData;
+        } else {
+          item = data;
+        }
 
         setFormData({
           ...formData,
-          title: data?.title,
-          announcement: data?.announcement,
-          classroom_id: data?.classroom_id,
-          section_id: data?.section_id,
-          order: data?.order,
+          title: item?.title,
+          announcement: item?.announcement,
+          classroom_id: item?.classroom_id,
+          section_id: item?.section_id,
+          order: item?.order,
           _method: "PUT",
         });
+
+        setId(item?.id);
       } catch (error) {
         console.log(error);
       } finally {
@@ -53,10 +64,10 @@ export default function AnnouncementForm({
       }
     };
 
-    if (id && isOpen) {
+    if (data && isOpen) {
       fetchData();
     }
-  }, [id]);
+  }, [data]);
 
   const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
 
@@ -100,7 +111,7 @@ export default function AnnouncementForm({
   const onClose = () => {
     setModalOpen(null);
     setMessage("");
-    setEditId(null);
+    setEditData(null);
     setFormData(tempForm);
   };
 

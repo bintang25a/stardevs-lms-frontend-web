@@ -9,9 +9,9 @@ import {
 
 export default function MaterialForm({
   isOpen,
-  id,
+  data,
   classroom,
-  setEditId,
+  setEditData,
   setModalOpen,
   setIsLoading,
   setShowToast,
@@ -32,6 +32,7 @@ export default function MaterialForm({
   const [fileUrl, setFileUrl] = useState("");
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(tempForm);
+  const [id, setId] = useState(null);
 
   const sections = classroom?.sections?.sort((a, b) => a.order - b.order) || [];
   const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -42,20 +43,18 @@ export default function MaterialForm({
       setIsFetching(true);
 
       try {
-        const { data } = await showMaterial(id);
+        let item = null;
 
-        setFormData({
-          ...formData,
-          title: data?.title,
-          description: data?.description || "",
-          classroom_id: data?.classroom_id,
-          section_id: data?.section_id || "",
-          order: data?.order,
-          _method: "PUT",
-        });
+        if (typeof data === "string" || typeof data === "number") {
+          const { data: resData } = await showMaterial(data);
+
+          item = resData;
+        } else {
+          item = data;
+        }
 
         const convertFiles = [
-          ...data.files.map((f) => ({
+          ...item.files.map((f) => ({
             ...f,
             url: f?.file_url,
             name: f?.file_name,
@@ -63,7 +62,19 @@ export default function MaterialForm({
           })),
         ];
 
+        setFormData({
+          ...formData,
+          title: item?.title,
+          description: item?.description || "",
+          classroom_id: item?.classroom_id,
+          section_id: item?.section_id || "",
+          order: item?.order,
+          files: convertFiles,
+          _method: "PUT",
+        });
+
         setShowFiles(convertFiles);
+        setId(item?.id);
       } catch (error) {
         console.log(error);
       } finally {
@@ -72,10 +83,10 @@ export default function MaterialForm({
       }
     };
 
-    if (id && isOpen) {
+    if (data && isOpen) {
       fetchData();
     }
-  }, [id]);
+  }, [data]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -206,7 +217,7 @@ export default function MaterialForm({
 
   const onClose = () => {
     setMessage("");
-    setEditId(null);
+    setEditData(null);
     setShowFiles([]);
     setModalOpen(null);
     setFormData(tempForm);
