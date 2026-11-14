@@ -64,7 +64,9 @@ export default function ClassroomCard({
           "hover:underline transition-all",
         )}
       >
-        <h3 className={cn("font-semibold text-sm xl:text-md")}>{data?.name}</h3>
+        <h3 className={cn("font-semibold text-xs md:text-sm xl:text-md")}>
+          {data?.name}
+        </h3>
         <span className={cn("font-light text-sm")}>
           Schedule: {isoToSchedule(data.schedule)}
         </span>
@@ -98,7 +100,7 @@ export default function ClassroomCard({
             "flex flex-col justify-start items-start",
             "bg-gray-200 rounded-md",
             "text-sm text-black font-light",
-            "overflow-hidden",
+            "overflow-hidden shadow shadow-gray-500",
             "transition-all duration-200 ease-out origin-bottom-right",
             menuOpen === data?.id
               ? "opacity-100 scale-100 pointer-events-auto"
@@ -109,10 +111,10 @@ export default function ClassroomCard({
             onClick={() => handleEdit(data)}
             title="Edit"
             className={cn(
-              "px-2 py-1",
+              "px-5 py-2",
               "hover:cursor-pointer hover:bg-gray-100 transition-all",
               "w-full",
-              "text-left",
+              "text-left text-xl",
               user?.role === "praktikan" && "hidden",
             )}
           >
@@ -124,10 +126,10 @@ export default function ClassroomCard({
             }
             title="Delete Classroom"
             className={cn(
-              "px-2 py-1",
+              "px-5 py-2",
               "hover:cursor-pointer hover:bg-gray-100 transition-all",
               "w-full",
-              "text-left",
+              "text-left text-xl",
               user?.role === "praktikan" && "hidden",
             )}
           >
@@ -139,10 +141,10 @@ export default function ClassroomCard({
             }
             title="Left Classroom"
             className={cn(
-              "px-2 py-1",
+              "px-5 py-2",
               "hover:cursor-pointer hover:bg-gray-100 transition-all",
               "w-full",
-              "text-left",
+              "text-left text-xl",
             )}
           >
             Left Classroom
@@ -151,10 +153,10 @@ export default function ClassroomCard({
             onClick={() => handleCopyUrl(`/${data?.id}`)}
             title="Left Classroom"
             className={cn(
-              "px-2 py-1",
+              "px-5 py-2",
               "hover:cursor-pointer hover:bg-gray-100 transition-all",
               "w-full",
-              "text-left",
+              "text-left text-xl",
             )}
           >
             Copy Link

@@ -289,7 +289,7 @@ export default function MaterialForm({
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
-              "text-sm text-primary font-normal",
+              "text-sm text-primary font-normal font-mono",
               "hover:shadow-sm hover:shadow-primary",
               "disabled:opacity-50",
             )}

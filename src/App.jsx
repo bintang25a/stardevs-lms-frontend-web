@@ -30,8 +30,11 @@ export default function App() {
           <Route path="classrooms/:id" element={<Classroom />}>
             <Route index element={<ControlPanel />} />
             <Route path="members" element={<Members />} />
-            <Route path="assignments" element={<Assignments />} />
-            <Route path="assignments/:assignmentId" element={<Assignment />} />
+            <Route path="assignments">
+              <Route index element={<Assignments />} />
+              <Route path=":assignmentId" element={<Assignment />} />
+              <Route path=":assignmentId/submit" element={<Assignment />} />
+            </Route>
             <Route path="materials/:materialId" element={<Material />} />
           </Route>
           <Route path="profile" element={<Profile />} />

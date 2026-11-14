@@ -1,21 +1,69 @@
 import {
+  FaBook,
+  FaBullhorn,
   FaChalkboard,
+  FaChevronDown,
+  FaClipboardList,
   FaDoorOpen,
   FaHouse,
+  FaQuestion,
   FaUser,
   FaXmark,
 } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { logout } from "../../_services/auth";
+import { useEffect, useState } from "react";
 
 export default function PublicSidebar({
   isOpen,
   handleToggleMenu,
   isLoading,
   setIsLoading,
+  classrooms,
 }) {
   const navigate = useNavigate();
+
+  const { id } = useParams();
+
+  const [items, setItems] = useState([]);
+  const [openTrays, setOpenTrays] = useState([
+    "classroom",
+    "material",
+    "assignment",
+    "announcement",
+  ]);
+
+  const pathname = window.location.pathname;
+
+  const dynamicNav = [
+    {
+      label: "Announcements",
+      name: "announcement",
+      icon: FaBullhorn,
+    },
+    {
+      label: "Materials",
+      name: "material",
+      icon: FaBook,
+    },
+    {
+      label: "Assignments",
+      name: "assignment",
+      icon: FaClipboardList,
+    },
+  ];
+
+  useEffect(() => {
+    const localData = localStorage.getItem("dynamicNavData");
+    const data = localData ? JSON.parse(localData) : [];
+
+    if (id) {
+      setItems(data);
+    } else {
+      setItems([]);
+    }
+  }, [pathname, id]);
 
   const handleLogout = async () => {
     try {
@@ -30,17 +78,21 @@ export default function PublicSidebar({
     }
   };
 
+  const handleOpenTrays = (name) => {
+    if (openTrays.includes(name)) {
+      setOpenTrays(openTrays?.filter((tray) => tray !== name));
+    } else [setOpenTrays([...openTrays, name])];
+  };
+
   return (
     <aside
       className={cn(
-        "w-1/2 h-full fixed top-0 z-50 xl:z-10",
+        "w-2/3 h-full fixed top-0 z-50",
         "bg-secondary",
         "transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "px-2 pt-16",
-        "xl:static xl:translate-x-0",
-        "xl:min-w-fit xl:w-1/6",
-        "xl:p-4",
+        "xl:static xl:translate-x-0 xl:z-10",
+        "xl:min-w-1/5 xl:w-1/5",
       )}
     >
       <button
@@ -60,13 +112,16 @@ export default function PublicSidebar({
 
       <ul
         className={cn(
+          "h-9/10",
           "flex flex-col gap-1",
-          "border-t border-white ",
-          "p-2",
-          "xl:p-0 xl:border-0",
+          "p-2 overflow-auto",
+          "xl:p-0 xl:px-4 xl:border-0",
         )}
       >
-        <li onClick={handleToggleMenu}>
+        <li
+          onClick={handleToggleMenu}
+          className="border-t border-white mt-16 xl:mt-4 xl:border-none"
+        >
           <Link
             to={"/"}
             className={cn(
@@ -81,12 +136,12 @@ export default function PublicSidebar({
             <span>Dashboard</span>
           </Link>
         </li>
-        <li onClick={handleToggleMenu}>
+        <li onClick={handleToggleMenu} className="flex flex-col">
           <Link
             to={"/classrooms"}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4",
+              "p-4 relative overflow-hidden",
               "text-xl text-white",
               "hover:bg-thirdnary rounded-full transition-all",
               "active:scale-95 active:bg-thirdnary",
@@ -94,8 +149,146 @@ export default function PublicSidebar({
           >
             <FaChalkboard size={24} />
             <span>Classroom</span>
+
+            <button
+              className={cn(
+                "ml-auto transition-all cursor-pointer",
+                !classrooms && "hidden",
+                openTrays.includes("classroom") && "rotate-z-180",
+              )}
+            >
+              <FaChevronDown />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleOpenTrays("classroom");
+              }}
+              className={cn(
+                "h-full w-1/3 z-10",
+                "bg-transparent absolute right-0",
+                "cursor-pointer",
+              )}
+            />
           </Link>
+
+          <ul
+            className={cn(
+              "grid transition-all duration-300 ease-in-out m-0 p-0",
+              !openTrays.includes("classroom")
+                ? "grid-rows-[0fr] opacity-0"
+                : "grid-rows-[1fr] opacity-100",
+            )}
+          >
+            <div className="overflow-hidden flex flex-col gap-1 p-2 pl-6 xl:p-0 xl:pl-6">
+              {classrooms?.map((c, i) => (
+                <li key={i}>
+                  <Link
+                    to={`/classrooms/${c?.id}`}
+                    className={cn(
+                      "flex justify-start items-center gap-2",
+                      "p-2",
+                      "text-lg text-gray-100",
+                      "hover:bg-thirdnary rounded-full transition-all",
+                      "active:scale-95 active:bg-thirdnary",
+                    )}
+                  >
+                    <div className="p-1.5 border border-white text-white rounded-full">
+                      <FaChalkboard size={16} />
+                    </div>
+                    <span className="truncate flex-1">{c?.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </div>
+          </ul>
         </li>
+        <li>
+          <button
+            disabled={!id}
+            className={cn(
+              "flex justify-start items-center gap-4",
+              "p-4 w-full cursor-pointer",
+              "text-xl text-white",
+              "hover:bg-thirdnary rounded-full transition-all",
+              !id
+                ? "text-gray-400 hover:bg-secondary active:bg-secondary"
+                : "hidden",
+            )}
+          >
+            <FaQuestion size={24} />
+            <span>Select Classroom</span>
+          </button>
+        </li>
+
+        {dynamicNav.map((d, i) => {
+          const tempItems = items?.filter((item) => item?.type === d?.name);
+
+          if (tempItems.length < 1) return null;
+
+          return (
+            <li key={i} className="flex flex-col">
+              <button
+                onClick={() => handleOpenTrays(d?.name)}
+                className={cn(
+                  "flex justify-start items-center gap-4",
+                  "p-4 w-full cursor-pointer",
+                  "text-xl text-white",
+                  "hover:bg-thirdnary rounded-full transition-all",
+                  !id
+                    ? "text-gray-400 hover:bg-secondary active:bg-secondary"
+                    : "active:scale-95 active:bg-thirdnary",
+                )}
+              >
+                <d.icon size={24} />
+                <span>{d?.label}</span>
+
+                <div
+                  className={cn(
+                    "ml-auto transition-all",
+                    openTrays.includes(d?.name) && "rotate-z-180",
+                  )}
+                >
+                  <FaChevronDown />
+                </div>
+              </button>
+
+              <ul
+                className={cn(
+                  "grid transition-all duration-300 ease-in-out m-0 p-0",
+                  !openTrays.includes(d?.name)
+                    ? "grid-rows-[0fr] opacity-0"
+                    : "grid-rows-[1fr] opacity-100",
+                )}
+              >
+                <div className="overflow-hidden flex flex-col gap-1 p-2 pl-6 xl:p-0 xl:pl-6">
+                  {tempItems?.map((item, index) => (
+                    <li key={index}>
+                      <Link
+                        to={`/classrooms/${id}/${item?.type}s/${item?.id}`}
+                        className={cn(
+                          "flex justify-start items-center gap-2",
+                          "p-2",
+                          "text-lg text-gray-100",
+                          "hover:bg-thirdnary rounded-full transition-all",
+                          "active:scale-95 active:bg-thirdnary",
+                        )}
+                      >
+                        <div className="p-1.5 border border-white text-white rounded-full">
+                          <d.icon size={16} />
+                        </div>
+                        <span className="truncate flex-1">{item?.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </div>
+              </ul>
+            </li>
+          );
+        })}
+
         <li onClick={handleToggleMenu}>
           <Link
             to={"/profile"}

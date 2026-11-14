@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { cn } from "../../_utilities/cn";
-import { FaChevronDown, FaLink, FaTrash, FaXmark } from "react-icons/fa6";
+import {
+  FaArrowUpRightFromSquare,
+  FaChevronDown,
+  FaFile,
+  FaLink,
+  FaTrash,
+  FaXmark,
+} from "react-icons/fa6";
 import {
   createAssignment,
   showAssignment,
@@ -192,7 +199,7 @@ export default function AssignmentForm({
       onClose();
     } catch (error) {
       console.log(error);
-      console.log({ ...payload });
+
       setMessage(error);
     } finally {
       setIsLoading(false);
@@ -428,7 +435,7 @@ export default function AssignmentForm({
               "w-full",
               "bg-white border-b border-b-primary",
               "p-2 rounded-t-md outline-none",
-              "text-sm text-primary font-normal",
+              "text-sm text-primary font-normal font-mono",
               "hover:shadow-sm hover:shadow-primary",
               "disabled:opacity-50",
             )}
@@ -582,6 +589,21 @@ export default function AssignmentForm({
                   "flex justify-between items-center gap-1",
                 )}
               >
+                <a
+                  href={file?.url || ""}
+                  target="_blank"
+                  disabled={!file.url}
+                  rel="noopener noreferrer"
+                  className="flex justify-center items-center cursor-pointer"
+                  onClick={(e) => {
+                    if (!file?.url) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {file.url ? <FaArrowUpRightFromSquare /> : <FaFile />}
+                </a>
+
                 <span className="text-black text-sm font-light truncate">
                   {!file.file ? file.name || file.url : file.file.name}
                 </span>

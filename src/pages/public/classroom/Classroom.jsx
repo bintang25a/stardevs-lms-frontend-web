@@ -4,6 +4,7 @@ import {
   useNavigate,
   useOutletContext,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 import { showClassroom } from "../../../_services/classrooms";
 import { cn } from "../../../_utilities/cn";
@@ -14,11 +15,18 @@ import NotificationToast from "../../../components/modal/NotificationToast";
 import AnnouncementForm from "../../../components/modal/AnnouncementForm";
 import MaterialForm from "../../../components/modal/MaterialForm";
 import AssignmentForm from "../../../components/modal/AssignmentForm";
+import { profile } from "../../../_services/auth";
+import SubmissionForm from "../../../components/modal/SubmissionForm";
 
 export default function Classroom() {
   const { setIsLoading, user } = useOutletContext();
+
   const { id } = useParams();
+
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const isNew = searchParams.get("is_new");
 
   const [showToast, setShowToast] = useState({
     isOpen: false,
@@ -33,30 +41,65 @@ export default function Classroom() {
   const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
-    const classroom_ids = user.classroom_ids || [];
-    const isAllowed = classroom_ids.includes(Number(id));
-
-    const fetchData = async () => {
+    const init = async () => {
       setIsLoading(true);
+      let currentGroupUser = user;
+      let allowed = false;
+
+      if (isNew) {
+        try {
+          const data = await profile();
+
+          currentGroupUser = data;
+        } catch (error) {
+          console.error("Gagal mengambil profil:", error);
+        }
+      }
+
+      const classroom_ids = currentGroupUser?.classroom_ids || [];
+      allowed = classroom_ids.includes(Number(id));
+
+      if (!allowed) {
+        navigate("/not-allowed", { replace: true });
+        setIsLoading(false);
+        setIsInit(false);
+        return;
+      }
 
       try {
         const data = await showClassroom(id);
-        // console.log(data);
+
         setClassroom(data);
+
+        const combinedData = [
+          ...(data?.announcements || []).map((item) => ({
+            id: item.id,
+            name: item.title,
+            type: "announcement",
+          })),
+          ...(data?.assignments || []).map((item) => ({
+            id: item.id,
+            name: item.title,
+            type: "assignment",
+          })),
+          ...(data?.materials || []).map((item) => ({
+            id: item.id,
+            name: item.title,
+            type: "material",
+          })),
+        ];
+
+        localStorage.setItem("dynamicNavData", JSON.stringify(combinedData));
       } catch (error) {
-        console.log(error);
+        console.log("Gagal mengambil data kelas:", error);
       } finally {
         setIsLoading(false);
         setIsInit(false);
       }
     };
 
-    if (!isAllowed) {
-      navigate("/not-allowed", { replace: true });
-    } else {
-      fetchData();
-    }
-  }, [id]);
+    init();
+  }, [id, isNew]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,6 +194,16 @@ export default function Classroom() {
         isOpen={modalOpen === "assignment"}
         data={editData}
         classroom={classroom}
+        setEditData={setEditData}
+        setModalOpen={setModalOpen}
+        setIsLoading={setIsLoading}
+        setShowToast={setShowToast}
+        setRefresh={setRefresh}
+      />
+
+      <SubmissionForm
+        isOpen={modalOpen === "submission"}
+        data={editData}
         setEditData={setEditData}
         setModalOpen={setModalOpen}
         setIsLoading={setIsLoading}

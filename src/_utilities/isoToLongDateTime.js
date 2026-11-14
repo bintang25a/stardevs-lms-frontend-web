@@ -1,4 +1,4 @@
-export const isoToLongDateTime = (dateString) => {
+export const isoToLongDateTime = (dateString, isSec = null) => {
   if (!dateString) return "-";
 
   const date = new Date(dateString);
@@ -14,6 +14,7 @@ export const isoToLongDateTime = (dateString) => {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    ...(isSec && { second: "2-digit" }),
     hour12: false,
   };
 

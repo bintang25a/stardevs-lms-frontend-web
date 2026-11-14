@@ -5,7 +5,6 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   createClassroom,
   deleteClassroom,
-  getClassrooms,
   updateClassroom,
 } from "../../../_services/classrooms";
 import { memberJoin, memberLeave } from "../../../_services/member";
@@ -14,7 +13,7 @@ import ClassroomCard from "../../../components/element/ClassroomCard";
 import ClassroomDelete from "../../../components/modal/ClassroomDelete";
 
 export default function Classrooms() {
-  const { setIsLoading, user } = useOutletContext();
+  const { classrooms: classs, setIsLoading, user } = useOutletContext();
 
   const [isInit, setIsInit] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,9 +31,7 @@ export default function Classrooms() {
       setIsLoading(true);
 
       try {
-        const res = await getClassrooms();
-
-        setClassrooms(res?.data);
+        setClassrooms(classs);
       } catch (error) {
         console.log(error);
       } finally {
@@ -120,7 +117,7 @@ export default function Classrooms() {
           ? await memberJoin(joinData)
           : await createClassroom(formData);
 
-        navigate(`/classrooms/${resData?.id}`);
+        navigate(`/classrooms/${resData?.id}?is_new=true`);
       }
 
       setModalOpen(false);
@@ -184,7 +181,7 @@ export default function Classrooms() {
         className={cn(
           "rounded-2xl bg-gray-100",
           "w-full h-full p-4 relative",
-          "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4",
+          "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4",
         )}
       >
         <span

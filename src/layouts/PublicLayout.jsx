@@ -5,12 +5,14 @@ import { cn } from "../_utilities/cn";
 import LoadingBar from "../components/modal/LoadingBar";
 import PublicHeader from "../components/layout/PublicHeader";
 import PublicSidebar from "../components/layout/PublicSidebar";
+import { getClassrooms } from "../_services/classrooms";
 
 export default function PublicLayout() {
   const [isInit, setIsInit] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState({});
+  const [classrooms, setClassrooms] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +22,12 @@ export default function PublicLayout() {
     const fetchProfile = async () => {
       try {
         const data = await profile();
+
+        if (isInit) {
+          const res = await getClassrooms();
+
+          setClassrooms(res?.data);
+        }
 
         setUser(data);
       } catch (error) {
@@ -66,9 +74,12 @@ export default function PublicLayout() {
           handleToggleMenu={handleToggleMenu}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
+          classrooms={classrooms}
         />
 
-        {!isInit && <Outlet context={{ isLoading, setIsLoading, user }} />}
+        {!isInit && (
+          <Outlet context={{ isLoading, setIsLoading, classrooms, user }} />
+        )}
       </main>
 
       <LoadingBar isLoading={isLoading} />

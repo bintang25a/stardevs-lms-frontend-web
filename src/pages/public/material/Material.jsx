@@ -42,7 +42,7 @@ export default function Material() {
         }
 
         const files = classroom?.files?.filter(
-          (file) => file.class_id == materialId && file.type === "material"
+          (file) => file.class_id == materialId && file.type === "material",
         );
 
         setMaterial({ ...data, files });
@@ -77,19 +77,23 @@ export default function Material() {
       className={cn(
         "w-full h-full p-4",
         "flex flex-col gap-2 xl:gap-3 justify-start items-center",
-        "overflow-auto"
+        "overflow-auto",
       )}
     >
       <div
         className={cn(
-          "w-full xl:w-4/5 h-full px-8 py-8",
+          "w-full h-full px-8 py-8",
           "bg-gray-100 rounded-lg shadow-xs shadow-gray-500",
           "flex flex-col justify-start items-start gap-4",
           "relative",
-          isInit && "hidden"
+          isInit && "hidden",
         )}
       >
-        <header className="flex justify-start items-center gap-2">
+        <header
+          className={cn(
+            "w-full flex flex-wrap md:flex-nowrap justify-start items-center gap-2 relative",
+          )}
+        >
           <div className="bg-gray-300 rounded-full border border-primary text-primary p-4">
             <FaBook size={28} />
           </div>
@@ -97,18 +101,71 @@ export default function Material() {
           <h2
             className={cn(
               "text-xl text-primary font-semibold",
-              "border-b-2 border-b-primary"
+              "border-b-2 border-b-primary",
             )}
           >
             {material?.title}
           </h2>
+
+          <div
+            className={cn(
+              "md:absolute md:right-2 md:top-1/2 md:-translate-y-1/2",
+              "flex flex-col justify-start items-end gap-1",
+              user.role === "praktikan" && "hidden",
+            )}
+          >
+            <button
+              onClick={() => setOpenMenu(!openMenu)}
+              className={cn(
+                "hover:bg-gray-300",
+                "p-1 rounded-md",
+                "transition-all cursor-pointer",
+              )}
+            >
+              <FaEllipsisVertical size={24} />
+            </button>
+
+            <div
+              className={cn(
+                "absolute -bottom-25",
+                "w-fit h-fit py-2",
+                "flex flex-col justify-start items-start gap-1",
+                "text-lg text-black",
+                "bg-gray-200 rounded-lg shadow-md shadow-gray-600",
+                !openMenu && "hidden",
+              )}
+            >
+              <button
+                onClick={handleModalOpen}
+                className={cn(
+                  "px-6 py-1 w-full",
+                  "cursor-pointer hover:bg-gray-300 ",
+                  "disabled:text-gray-500 text-left",
+                )}
+              >
+                Edit
+              </button>
+              <button
+                onClick={() =>
+                  setConfirmDelete({ ...confirmDelete, isOpen: true })
+                }
+                className={cn(
+                  "px-6 py-1 w-full",
+                  "cursor-pointer hover:bg-gray-300 ",
+                  "disabled:text-gray-500 text-left",
+                )}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </header>
 
         <main
           className={cn(
             "w-full h-full min-h-30 py-4",
             "border-t-2 border-gray-500",
-            "flex flex-col xl:flex-row justify-start items-start"
+            "flex flex-col xl:flex-row justify-start items-start",
           )}
         >
           <div
@@ -116,14 +173,14 @@ export default function Material() {
               "flex-1 w-full xl:min-w-3/5 h-full",
               "xl:border-r border-gray-500",
               "xl:px-8",
-              "flex flex-col gap-2"
+              "flex flex-col gap-2",
             )}
           >
             <h3 className="text-lg text-primary font-medium">Description</h3>
 
-            <p className="text-md text-gray-700 text-justify font-light overflow-auto">
+            <pre className="text-md text-gray-700 text-justify font-light overflow-auto">
               {material?.description}
-            </p>
+            </pre>
           </div>
 
           <div
@@ -131,7 +188,7 @@ export default function Material() {
               "flex-1 w-full xl:min-w-2/5 h-full",
               "border-b-2 xl:border-none border-gray-500",
               "xl:px-8",
-              "flex flex-col gap-2"
+              "flex flex-col gap-2",
             )}
           >
             <h3 className="text-lg text-primary font-medium">Material Files</h3>
@@ -149,7 +206,7 @@ export default function Material() {
                     "border border-primary rounded-md",
                     "flex items-center justify-between",
                     "hover:bg-gray-200 hover:scale-105 active:bg-gray-200",
-                    "cursor-pointer transition-all"
+                    "cursor-pointer transition-all",
                   )}
                 >
                   <h4 className="text-xs text-black font-normal truncate">
@@ -159,7 +216,7 @@ export default function Material() {
                   <button
                     onClick={() => handleFileDownload(file)}
                     className={cn(
-                      "w-fit h-fit px-1 border-l border-gray-500 text-primary cursor-pointer"
+                      "w-fit h-fit px-1 border-l border-gray-500 text-primary cursor-pointer",
                     )}
                   >
                     {isUrl ? <FaArrowUpRightFromSquare /> : <FaDownload />}
@@ -167,58 +224,6 @@ export default function Material() {
                 </div>
               );
             })}
-          </div>
-
-          <div
-            className={cn(
-              "absolute right-2 top-2",
-              "flex flex-col justify-start items-end gap-1",
-              user.role === "praktikan" && "hidden"
-            )}
-          >
-            <button
-              onClick={() => setOpenMenu(!openMenu)}
-              className={cn(
-                "hover:bg-gray-300",
-                "p-1 rounded-md",
-                "transition-all cursor-pointer"
-              )}
-            >
-              <FaEllipsisVertical size={24} />
-            </button>
-
-            <div
-              className={cn(
-                "w-fit h-fit py-2",
-                "flex flex-col justify-start items-start gap-1",
-                "text-lg text-black",
-                "bg-gray-200 rounded-lg shadow-md shadow-gray-600",
-                !openMenu && "hidden"
-              )}
-            >
-              <button
-                onClick={handleModalOpen}
-                className={cn(
-                  "px-6 py-1 w-full",
-                  "cursor-pointer hover:bg-gray-300 ",
-                  "disabled:text-gray-500 text-left"
-                )}
-              >
-                Edit
-              </button>
-              <button
-                onClick={() =>
-                  setConfirmDelete({ ...confirmDelete, isOpen: true })
-                }
-                className={cn(
-                  "px-6 py-1 w-full",
-                  "cursor-pointer hover:bg-gray-300 ",
-                  "disabled:text-gray-500 text-left"
-                )}
-              >
-                Delete
-              </button>
-            </div>
           </div>
 
           <ConfirmDelete
@@ -231,7 +236,7 @@ export default function Material() {
         <footer
           className={cn(
             "w-full h-fit flex flex-col xl:flex-row justify-between items-center",
-            "text-md text-secondary font-normal"
+            "text-md text-secondary font-normal",
           )}
         >
           <span className={cn("hidden md:block")}>
