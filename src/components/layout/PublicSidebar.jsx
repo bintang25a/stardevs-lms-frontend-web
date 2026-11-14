@@ -4,9 +4,11 @@ import {
   FaChalkboard,
   FaChevronDown,
   FaClipboardList,
+  FaCode,
   FaDoorOpen,
   FaHouse,
   FaQuestion,
+  FaServer,
   FaUser,
   FaXmark,
 } from "react-icons/fa6";
@@ -63,7 +65,7 @@ export default function PublicSidebar({
     } else {
       setItems([]);
     }
-  }, [pathname, id]);
+  }, [isLoading, pathname, id]);
 
   const handleLogout = async () => {
     try {
@@ -88,11 +90,13 @@ export default function PublicSidebar({
     <aside
       className={cn(
         "w-2/3 h-full fixed top-0 z-50",
-        "bg-secondary",
+        "bg-secondary p-2 pt-16",
         "transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
         "xl:static xl:translate-x-0 xl:z-10",
-        "xl:min-w-1/5 xl:w-1/5",
+        "xl:min-w-1/5 xl:w-1/5 xl:pt-4",
+        "overflow-auto",
+        "flex flex-col justify-between items-center",
       )}
     >
       <button
@@ -112,16 +116,13 @@ export default function PublicSidebar({
 
       <ul
         className={cn(
-          "h-9/10",
+          "h-fit",
           "flex flex-col gap-1",
-          "p-2 overflow-auto",
-          "xl:p-0 xl:px-4 xl:border-0",
+          "xl:border-0",
+          "border-t border-white xl:border-none",
         )}
       >
-        <li
-          onClick={handleToggleMenu}
-          className="border-t border-white mt-16 xl:mt-4 xl:border-none"
-        >
+        <li onClick={handleToggleMenu}>
           <Link
             to={"/"}
             className={cn(
@@ -205,23 +206,6 @@ export default function PublicSidebar({
             </div>
           </ul>
         </li>
-        <li>
-          <button
-            disabled={!id}
-            className={cn(
-              "flex justify-start items-center gap-4",
-              "p-4 w-full cursor-pointer",
-              "text-xl text-white",
-              "hover:bg-thirdnary rounded-full transition-all",
-              !id
-                ? "text-gray-400 hover:bg-secondary active:bg-secondary"
-                : "hidden",
-            )}
-          >
-            <FaQuestion size={24} />
-            <span>Select Classroom</span>
-          </button>
-        </li>
 
         {dynamicNav.map((d, i) => {
           const tempItems = items?.filter((item) => item?.type === d?.name);
@@ -229,7 +213,7 @@ export default function PublicSidebar({
           if (tempItems.length < 1) return null;
 
           return (
-            <li key={i} className="flex flex-col">
+            <li key={i} className={cn("flex flex-col", isLoading && "hidden")}>
               <button
                 onClick={() => handleOpenTrays(d?.name)}
                 className={cn(
@@ -291,6 +275,34 @@ export default function PublicSidebar({
 
         <li onClick={handleToggleMenu}>
           <Link
+            to={`private-server`}
+            className={cn(
+              "flex justify-start items-center gap-4",
+              "p-4 w-full cursor-pointer",
+              "text-xl text-white",
+              "hover:bg-thirdnary rounded-full transition-all",
+            )}
+          >
+            <FaCode size={24} />
+            <span>Code Editor</span>
+          </Link>
+        </li>
+        <li onClick={handleToggleMenu}>
+          <Link
+            to={`code-editor`}
+            className={cn(
+              "flex justify-start items-center gap-4",
+              "p-4 w-full cursor-pointer",
+              "text-xl text-white",
+              "hover:bg-thirdnary rounded-full transition-all",
+            )}
+          >
+            <FaServer size={24} />
+            <span>Private Server</span>
+          </Link>
+        </li>
+        <li onClick={handleToggleMenu}>
+          <Link
             to={"/profile"}
             className={cn(
               "flex justify-start items-center gap-4",
@@ -314,7 +326,6 @@ export default function PublicSidebar({
           "w-4/5",
           "flex justify-center items-center gap-2",
           "text-center text-lg font-semibold text-white",
-          "absolute bottom-4 left-1/2 -translate-x-1/2",
           "bg-red-600 py-2 px-6 rounded-2xl shadow-sm shadow-gray-300",
           "hover:cursor-pointer hover:scale-105 hover:bg-red-700 transition-all",
           "active:bg-red-700 active:scale-95",

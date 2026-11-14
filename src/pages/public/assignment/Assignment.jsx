@@ -1,4 +1,9 @@
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 import { cn } from "../../../_utilities/cn";
 import {
   FaDownload,
@@ -193,7 +198,8 @@ export default function Assignment() {
               )}
             </button>
 
-            <a
+            <Link
+              to={`/classrooms/${id}/submissions/${assignmentId}`}
               className={cn(
                 "py-1.5 px-3",
                 "rounded-xl border border-primary",
@@ -206,7 +212,7 @@ export default function Assignment() {
             >
               {user.role === "asisten" ? "See all Answers" : "See Answer"}
               <FaArrowUpRightFromSquare />
-            </a>
+            </Link>
 
             <div
               className={cn(

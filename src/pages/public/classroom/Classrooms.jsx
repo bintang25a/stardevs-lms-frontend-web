@@ -13,7 +13,7 @@ import ClassroomCard from "../../../components/element/ClassroomCard";
 import ClassroomDelete from "../../../components/modal/ClassroomDelete";
 
 export default function Classrooms() {
-  const { classrooms: classs, setIsLoading, user } = useOutletContext();
+  const { classrooms: classroomData, setIsLoading, user } = useOutletContext();
 
   const [isInit, setIsInit] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,7 +31,7 @@ export default function Classrooms() {
       setIsLoading(true);
 
       try {
-        setClassrooms(classs);
+        setClassrooms(classroomData);
       } catch (error) {
         console.log(error);
       } finally {
