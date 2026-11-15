@@ -127,9 +127,11 @@ export default function SubmissionForm({
     const tempAnswerKeys = answerFiles.filter((a) => a.file && a.isNew);
     const tempFiles = showUrls.filter((file) => file.isNew);
 
-    const fd = { ...formData, files: [...tempFiles, ...tempAnswerKeys] };
-
-    console.log(fd);
+    const fd = {
+      ...formData,
+      assignment_id: data?.assignment_id,
+      files: [...tempFiles, ...tempAnswerKeys],
+    };
 
     Object.entries(fd).forEach(([key, value]) => {
       if (key === "files" && Array.isArray(value)) {

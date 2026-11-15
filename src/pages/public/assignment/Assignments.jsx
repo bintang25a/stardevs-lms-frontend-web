@@ -10,9 +10,10 @@ export default function Assignments() {
 
   const [openTrays, setOpenTrays] = useState([]);
   const [openMenu, setOpenMenu] = useState("");
+  const [filter, setFilter] = useState("");
 
-  const handleToggleExpand = () => {
-    if (openTrays.length < 1) {
+  const handleToggleExpand = (isOpen = false) => {
+    if (openTrays.length < 1 || isOpen) {
       setOpenTrays([...classroom.sections.map((s) => s.id), null]);
       return true;
     } else {
@@ -34,6 +35,8 @@ export default function Assignments() {
         toggleExpand={handleToggleExpand}
         openTrays={openTrays}
         setModalOpen={setModalOpen}
+        setFilter={setFilter}
+        filter={filter}
       />
 
       <AssignmentContent
@@ -46,6 +49,7 @@ export default function Assignments() {
         setModalOpen={setModalOpen}
         setEditData={setEditData}
         setRefresh={setRefresh}
+        filter={filter}
       />
     </div>
   );

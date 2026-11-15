@@ -1,8 +1,10 @@
 import {
   FaBook,
   FaBullhorn,
+  FaCheck,
   FaChevronDown,
   FaClipboardList,
+  FaClock,
   FaEllipsisVertical,
 } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
@@ -25,6 +27,7 @@ export default function AssignmentContent({
   setModalOpen,
   setEditData,
   setRefresh,
+  filter,
 }) {
   const [classroom, setClassroom] = useState(classroomParams);
 
@@ -215,12 +218,19 @@ export default function AssignmentContent({
           ...sectionAssignments,
         ];
 
-        const sortedContents = [...contents].sort(
+        const filteredContents = [...contents].filter((c) =>
+          c?.content_type?.includes(filter),
+        );
+
+        const sortedContents = [...filteredContents].sort(
           (a, b) => a?.order - b?.order,
         );
 
-        if (sortedContents.length < 1 && section.title === "No Sections") {
-          return;
+        if (
+          sortedContents.length < 1 &&
+          (section.title === "No Sections" || filter)
+        ) {
+          return null;
         }
 
         return (
@@ -324,13 +334,28 @@ export default function AssignmentContent({
                       target: "_blank",
                     };
 
+                const isAssignment = content?.content_type === "assignment";
+
+                let isSubmitted = false;
+                let isLate = false;
+
+                if (isAssignment) {
+                  isSubmitted = content?.submissions?.some(
+                    (s) => s?.student_id === user?.id,
+                  );
+
+                  const now = new Date();
+                  const dueTime = new Date(content?.ended_at);
+                  isLate = now > dueTime;
+                }
+
                 return (
                   <DynamicTag
                     {...dynamicProps}
                     key={i}
                     className={cn(
                       "w-full p-4 xl:px-8 xl:py-4 xl:pr-18",
-                      "flex justify-between items-center",
+                      "flex justify-start xl:justify-between items-center gap-2 xl:gap-0",
                       "border-b border-b-secondary",
                       "hover:bg-gray-100 active:bg-gray-100 transition-none",
                       "cursor-pointer relative",
@@ -354,9 +379,39 @@ export default function AssignmentContent({
                       <span>{content?.title}</span>
                     </h2>
 
-                    <span className={cn("hidden xl:block text-sm font-light")}>
-                      {content?.ended_at &&
-                        `Due: ${isoToLongDateTime(content?.ended_at)}`}
+                    <span className={cn("text-sm font-light")}>
+                      {(isSubmitted || isLate) && user?.role === "praktikan" ? (
+                        <div
+                          title={isSubmitted ? "Submitted" : "Closed"}
+                          className={cn(
+                            "py-1.5 px-3",
+                            "rounded-xl",
+                            "text-black text-md font-normal",
+                            "flex justify-center items-center gap-2",
+                            isSubmitted && "bg-green-500",
+                            isLate && "bg-red-500 text-white",
+                          )}
+                        >
+                          {isSubmitted ? (
+                            <>
+                              <span className="hidden xl:block">Submitted</span>
+                              <FaCheck size={16} />
+                            </>
+                          ) : (
+                            <>
+                              <span className="hidden xl:block">
+                                Closed, Too Late!
+                              </span>
+                              <FaClock size={16} />
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="hidden xl:block">
+                          {content?.ended_at &&
+                            `Due: ${isoToLongDateTime(content?.ended_at)}`}
+                        </span>
+                      )}
                     </span>
 
                     <button

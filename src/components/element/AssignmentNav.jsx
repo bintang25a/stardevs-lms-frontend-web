@@ -1,4 +1,4 @@
-import { FaChevronDown, FaChevronUp, FaPlus } from "react-icons/fa6";
+import { FaChevronDown, FaChevronUp, FaFilter, FaPlus } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
 import { useState } from "react";
 
@@ -7,12 +7,28 @@ export default function AssignmentNav({
   setModalOpen,
   toggleExpand,
   openTrays,
+  setFilter,
+  filter,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [trayOpen, setTrayOpen] = useState(false);
 
   const handleToggleExpand = () => {
     setTrayOpen(toggleExpand());
+  };
+
+  const handleClick = (menu) => {
+    const isFilter = user.role === "praktikan";
+
+    if (isFilter) {
+      setFilter(menu !== "section" ? menu : "");
+
+      toggleExpand(true);
+    } else {
+      setModalOpen(menu);
+    }
+
+    setIsOpen(false);
   };
 
   return (
@@ -31,12 +47,28 @@ export default function AssignmentNav({
             "bg-gray-300 rounded-full px-5 xl:px-3 py-2",
             "text-md xl:text-lg text-black font-light truncate",
             "hover:bg-gray-400 active:scale-95 transition-all cursor-pointer",
-            user.role === "praktikan" && "hidden",
           )}
         >
           <div className="flex items-center gap-2">
-            <FaPlus size={20} />
-            <span>Create</span>
+            {user.role === "praktikan" ? (
+              <>
+                <FaFilter size={20} />
+
+                <span className={cn("hidden md:block", !filter && "block")}>
+                  Filter
+                </span>
+
+                <span className={cn("hidden md:block", !filter && "md:hidden")}>
+                  :
+                </span>
+
+                {filter ? `${filter}` : ""}
+              </>
+            ) : (
+              <>
+                <FaPlus size={20} /> Create
+              </>
+            )}
           </div>
 
           <FaChevronDown
@@ -57,26 +89,47 @@ export default function AssignmentNav({
           )}
         >
           <button
-            onClick={() => setModalOpen("section")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+            onClick={() => handleClick("section")}
+            className={cn(
+              "w-full px-4 py-2",
+              "text-left",
+              "rounded-lg transition-colors cursor-pointer",
+              "hover:bg-gray-200",
+              user?.role === "praktikan" && !filter && "hidden",
+            )}
           >
-            Section
+            {user?.role === "praktikan" ? "No Filter" : "Section"}
           </button>
           <button
-            onClick={() => setModalOpen("announcement")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+            onClick={() => handleClick("announcement")}
+            className={cn(
+              "w-full px-4 py-2",
+              "text-left",
+              "rounded-lg transition-colors cursor-pointer",
+              "hover:bg-gray-200",
+            )}
           >
             Announcement
           </button>
           <button
-            onClick={() => setModalOpen("material")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+            onClick={() => handleClick("material")}
+            className={cn(
+              "w-full px-4 py-2",
+              "text-left",
+              "rounded-lg transition-colors cursor-pointer",
+              "hover:bg-gray-200",
+            )}
           >
             Material
           </button>
           <button
-            onClick={() => setModalOpen("assignment")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+            onClick={() => handleClick("assignment")}
+            className={cn(
+              "w-full px-4 py-2",
+              "text-left",
+              "rounded-lg transition-colors cursor-pointer",
+              "hover:bg-gray-200",
+            )}
           >
             Assignment
           </button>

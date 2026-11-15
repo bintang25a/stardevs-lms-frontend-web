@@ -275,7 +275,7 @@ export default function PublicSidebar({
 
         <li onClick={handleToggleMenu}>
           <Link
-            to={`private-server`}
+            to={`code-editor`}
             className={cn(
               "flex justify-start items-center gap-4",
               "p-4 w-full cursor-pointer",
@@ -289,7 +289,7 @@ export default function PublicSidebar({
         </li>
         <li onClick={handleToggleMenu}>
           <Link
-            to={`code-editor`}
+            to={`private-server`}
             className={cn(
               "flex justify-start items-center gap-4",
               "p-4 w-full cursor-pointer",

@@ -45,6 +45,9 @@ export default function ClassroomCard({
     }
   };
 
+  const titleLength = data?.name?.length;
+  console.log(titleLength);
+
   return (
     <div
       className={cn(
@@ -64,11 +67,22 @@ export default function ClassroomCard({
           "hover:underline transition-all",
         )}
       >
-        <h3 className={cn("font-semibold text-xs md:text-sm xl:text-md")}>
+        <h3
+          className={cn(
+            "font-semibold",
+            titleLength > 30
+              ? "text-sm md:text-sm xl:text-sm"
+              : titleLength > 21
+                ? "text-sm md:text-md xl:text-md"
+                : titleLength > 12
+                  ? "text-md md:text-md xl:text-base"
+                  : "text-md md:text-base xl:text-lg",
+          )}
+        >
           {data?.name}
         </h3>
-        <span className={cn("font-light text-sm")}>
-          Schedule: {isoToSchedule(data.schedule)}
+        <span className={cn("font-light text-xs")}>
+          Schedule: {isoToSchedule(data?.schedule)}
         </span>
       </Link>
 

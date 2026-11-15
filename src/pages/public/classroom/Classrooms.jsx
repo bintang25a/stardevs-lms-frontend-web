@@ -181,7 +181,7 @@ export default function Classrooms() {
         className={cn(
           "rounded-2xl bg-gray-100",
           "w-full h-full p-4 relative",
-          "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4",
+          "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
         )}
       >
         <span
