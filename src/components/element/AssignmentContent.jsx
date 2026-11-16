@@ -12,7 +12,7 @@ import { isoToLongDate } from "../../_utilities/isoToLongDate";
 import { isoToLongDateTime } from "../../_utilities/isoToLongDateTime";
 import { lowerOrder, raiseOrder } from "../../_services/actions";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import AssignmentMenuButtons from "./AssignmentMenuButtons";
 import ConfirmDelete from "../modal/ConfirmDelete";
 import AnnouncementModal from "../modal/AnnouncementModal";
@@ -34,8 +34,11 @@ export default function AssignmentContent({
   const { sections, materials, announcements, assignments } = classroom;
   const currentUrl = window.location.href;
 
+  const { id } = useParams();
+
   const [searchParams] = useSearchParams();
   const sectionId = searchParams.get("section");
+  const announcementId = searchParams.get("announcement");
 
   const [confirmDelete, setConfirmDelete] = useState({
     isOpen: false,
@@ -51,6 +54,12 @@ export default function AssignmentContent({
       setOpenTrays((prev) => [...prev, Number(sectionId)]);
     }
   }, [sectionId]);
+
+  useEffect(() => {
+    if (announcementId) {
+      setAnnouncement({ isOpen: true, id: announcementId });
+    }
+  }, [announcementId]);
 
   const sortedSections = [
     ...sections?.map((s) => ({ ...s, content_type: "section" })),
@@ -322,7 +331,7 @@ export default function AssignmentContent({
               {sortedContents?.map((content, i) => {
                 const isAnnouncement = content?.content_type === "announcement";
 
-                const DynamicTag = isAnnouncement ? "div" : "a";
+                const DynamicTag = isAnnouncement ? "div" : Link;
 
                 const dynamicProps = isAnnouncement
                   ? {
@@ -330,8 +339,7 @@ export default function AssignmentContent({
                         setAnnouncement({ isOpen: true, id: content?.id }),
                     }
                   : {
-                      href: `${content?.content_type}s/${content?.id}`,
-                      target: "_blank",
+                      to: `/classrooms/${id}/${content?.content_type}s/${content?.id}`,
                     };
 
                 const isAssignment = content?.content_type === "assignment";

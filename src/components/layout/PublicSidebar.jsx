@@ -1,21 +1,18 @@
 import {
-  FaBook,
-  FaBullhorn,
   FaChalkboard,
   FaChevronDown,
   FaClipboardList,
   FaCode,
   FaDoorOpen,
   FaHouse,
-  FaQuestion,
   FaServer,
   FaUser,
   FaXmark,
 } from "react-icons/fa6";
 import { cn } from "../../_utilities/cn";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { href, Link, useNavigate, useParams } from "react-router-dom";
 import { logout } from "../../_services/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function PublicSidebar({
   isOpen,
@@ -28,44 +25,44 @@ export default function PublicSidebar({
 
   const { id } = useParams();
 
-  const [items, setItems] = useState([]);
-  const [openTrays, setOpenTrays] = useState([
-    "classroom",
-    "material",
-    "assignment",
-    "announcement",
-  ]);
+  const [openTrays, setOpenTrays] = useState([]);
 
   const pathname = window.location.pathname;
+  const paths = pathname?.split("/");
 
-  const dynamicNav = [
-    {
-      label: "Announcements",
-      name: "announcement",
-      icon: FaBullhorn,
-    },
-    {
-      label: "Materials",
-      name: "material",
-      icon: FaBook,
-    },
-    {
-      label: "Assignments",
-      name: "assignment",
-      icon: FaClipboardList,
-    },
-  ];
+  const assignments = useMemo(() => {
+    return (
+      classrooms?.flatMap((c) => {
+        const classAssignments = c?.assignments || [];
+
+        return classAssignments.map((assignment) => ({
+          id: assignment.id,
+          title: assignment.title,
+          classId: c.id,
+        }));
+      }) || []
+    );
+  }, [classrooms]);
 
   useEffect(() => {
-    const localData = localStorage.getItem("dynamicNavData");
-    const data = localData ? JSON.parse(localData) : [];
-
-    if (id) {
-      setItems(data);
-    } else {
-      setItems([]);
+    if (classrooms?.length > 0) {
+      setOpenTrays((prev) => {
+        if (!prev.includes("classroom")) {
+          return [...prev, "classroom"];
+        }
+        return prev;
+      });
     }
-  }, [isLoading, pathname, id]);
+
+    if (assignments?.length > 0) {
+      setOpenTrays((prev) => {
+        if (!prev.includes("assignment")) {
+          return [...prev, "assignment"];
+        }
+        return prev;
+      });
+    }
+  }, [classrooms, assignments]);
 
   const handleLogout = async () => {
     try {
@@ -94,9 +91,9 @@ export default function PublicSidebar({
         "transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
         "xl:static xl:translate-x-0 xl:z-10",
-        "xl:min-w-1/5 xl:w-1/5 xl:pt-4",
+        "xl:min-w-1/6 xl:w-1/6 xl:pt-4",
         "overflow-auto",
-        "flex flex-col justify-between items-center",
+        "flex flex-col justify-between items-center gap-4",
       )}
     >
       <button
@@ -116,7 +113,7 @@ export default function PublicSidebar({
 
       <ul
         className={cn(
-          "h-fit",
+          "h-fit w-full max-w-full",
           "flex flex-col gap-1",
           "xl:border-0",
           "border-t border-white xl:border-none",
@@ -124,28 +121,41 @@ export default function PublicSidebar({
       >
         <li onClick={handleToggleMenu}>
           <Link
+            title="Dashboard"
             to={"/"}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4 relative",
-              "text-xl text-white",
+              "px-4 py-2 relative",
+              "text-lg text-white",
               "hover:bg-thirdnary rounded-full transition-all",
               "active:scale-95 active:bg-thirdnary",
+              paths[0] === "" && paths[1] === "" && "bg-thirdnary",
             )}
           >
             <FaHouse size={24} />
             <span>Dashboard</span>
           </Link>
         </li>
-        <li onClick={handleToggleMenu} className="flex flex-col">
+        <li
+          onClick={handleToggleMenu}
+          className={cn(
+            "flex flex-col",
+            openTrays.includes("classroom") && "gap-1",
+          )}
+        >
           <Link
+            title="Classroom"
             to={"/classrooms"}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4 relative overflow-hidden",
-              "text-xl text-white",
+              "px-4 py-2 relative overflow-hidden",
+              "text-lg text-white",
               "hover:bg-thirdnary rounded-full transition-all",
               "active:scale-95 active:bg-thirdnary",
+              paths[1] === "classrooms" &&
+                (!paths[2] || !openTrays.includes("classroom")) &&
+                !paths[3] &&
+                "bg-thirdnary",
             )}
           >
             <FaChalkboard size={24} />
@@ -154,7 +164,7 @@ export default function PublicSidebar({
             <button
               className={cn(
                 "ml-auto transition-all cursor-pointer",
-                !classrooms && "hidden",
+                classrooms?.length === 0 && "hidden",
                 openTrays.includes("classroom") && "rotate-z-180",
               )}
             >
@@ -172,6 +182,7 @@ export default function PublicSidebar({
                 "bg-transparent absolute right-0",
                 "cursor-pointer",
               )}
+              disabled={classrooms?.length === 0}
             />
           </Link>
 
@@ -187,17 +198,19 @@ export default function PublicSidebar({
               {classrooms?.map((c, i) => (
                 <li key={i}>
                   <Link
+                    title={c?.name}
                     to={`/classrooms/${c?.id}`}
                     className={cn(
                       "flex justify-start items-center gap-2",
                       "p-2",
-                      "text-lg text-gray-100",
+                      "text-md text-gray-100",
                       "hover:bg-thirdnary rounded-full transition-all",
                       "active:scale-95 active:bg-thirdnary",
+                      paths[2] == c?.id && "bg-thirdnary",
                     )}
                   >
                     <div className="p-1.5 border border-white text-white rounded-full">
-                      <FaChalkboard size={16} />
+                      <FaChalkboard size={15} />
                     </div>
                     <span className="truncate flex-1">{c?.name}</span>
                   </Link>
@@ -207,80 +220,95 @@ export default function PublicSidebar({
           </ul>
         </li>
 
-        {dynamicNav.map((d, i) => {
-          const tempItems = items?.filter((item) => item?.type === d?.name);
+        <li
+          className={cn(
+            "flex flex-col",
+            openTrays.includes("assignment") && "gap-1",
+          )}
+        >
+          <button
+            onClick={() => handleOpenTrays("assignment")}
+            disabled={assignments?.length === 0}
+            className={cn(
+              "flex justify-start items-center gap-4",
+              "px-4 py-2 w-full cursor-pointer",
+              "text-lg text-white",
+              "hover:bg-thirdnary rounded-full transition-all",
+              "active:scale-95 active:bg-thirdnary disabled:text-gray-400 disabled:hover:bg-transparent",
+              paths[3] === "assignments" &&
+                !openTrays.includes("assignment") &&
+                "bg-thirdnary",
+            )}
+          >
+            <FaClipboardList className="min-w-fit" size={24} />
+            <span className="truncate">Assignments</span>
 
-          if (tempItems.length < 1) return null;
+            <div
+              className={cn(
+                "ml-auto transition-all",
+                assignments?.length === 0 && "hidden",
+                openTrays.includes("assignment") && "rotate-z-180",
+              )}
+            >
+              <FaChevronDown />
+            </div>
+          </button>
 
-          return (
-            <li key={i} className={cn("flex flex-col", isLoading && "hidden")}>
-              <button
-                onClick={() => handleOpenTrays(d?.name)}
-                className={cn(
-                  "flex justify-start items-center gap-4",
-                  "p-4 w-full cursor-pointer",
-                  "text-xl text-white",
-                  "hover:bg-thirdnary rounded-full transition-all",
-                  !id
-                    ? "text-gray-400 hover:bg-secondary active:bg-secondary"
-                    : "active:scale-95 active:bg-thirdnary",
-                )}
-              >
-                <d.icon size={24} />
-                <span>{d?.label}</span>
+          <ul
+            className={cn(
+              "grid transition-all duration-300 ease-in-out m-0 p-0",
+              !openTrays.includes("assignment")
+                ? "grid-rows-[0fr] opacity-0"
+                : "grid-rows-[1fr] opacity-100",
+            )}
+          >
+            <div className="overflow-hidden flex flex-col gap-1 p-2 pl-6 xl:p-0 xl:pl-6">
+              {assignments?.map((item, index) => {
+                const targetUrl = `/classrooms/${item?.classId}/assignments/${item?.id}`;
 
-                <div
-                  className={cn(
-                    "ml-auto transition-all",
-                    openTrays.includes(d?.name) && "rotate-z-180",
-                  )}
-                >
-                  <FaChevronDown />
-                </div>
-              </button>
+                const DynamicTag = item?.classId == id ? Link : "a";
 
-              <ul
-                className={cn(
-                  "grid transition-all duration-300 ease-in-out m-0 p-0",
-                  !openTrays.includes(d?.name)
-                    ? "grid-rows-[0fr] opacity-0"
-                    : "grid-rows-[1fr] opacity-100",
-                )}
-              >
-                <div className="overflow-hidden flex flex-col gap-1 p-2 pl-6 xl:p-0 xl:pl-6">
-                  {tempItems?.map((item, index) => (
-                    <li key={index}>
-                      <Link
-                        to={`/classrooms/${id}/${item?.type}s/${item?.id}`}
-                        className={cn(
-                          "flex justify-start items-center gap-2",
-                          "p-2",
-                          "text-lg text-gray-100",
-                          "hover:bg-thirdnary rounded-full transition-all",
-                          "active:scale-95 active:bg-thirdnary",
-                        )}
-                      >
-                        <div className="p-1.5 border border-white text-white rounded-full">
-                          <d.icon size={16} />
-                        </div>
-                        <span className="truncate flex-1">{item?.name}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </div>
-              </ul>
-            </li>
-          );
-        })}
+                const dynamicProps =
+                  item?.classId == id ? { to: targetUrl } : { href: targetUrl };
+
+                return (
+                  <li key={index}>
+                    <DynamicTag
+                      title={item?.title}
+                      {...dynamicProps}
+                      className={cn(
+                        "flex justify-start items-center gap-2",
+                        "p-2",
+                        "text-md text-gray-100",
+                        "hover:bg-thirdnary rounded-full transition-all",
+                        "active:scale-95 active:bg-thirdnary",
+                        paths[3] === "assignments" &&
+                          paths[4] == item?.id &&
+                          "bg-thirdnary",
+                      )}
+                    >
+                      <div className="p-1.5 border border-white text-white rounded-full">
+                        <FaClipboardList size={15} />
+                      </div>
+                      <span className="truncate flex-1">{item?.title}</span>
+                    </DynamicTag>
+                  </li>
+                );
+              })}
+            </div>
+          </ul>
+        </li>
 
         <li onClick={handleToggleMenu}>
           <Link
+            title="Code Editor"
             to={`code-editor`}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4 w-full cursor-pointer",
-              "text-xl text-white",
+              "px-4 py-2 w-full cursor-pointer",
+              "text-lg text-white",
               "hover:bg-thirdnary rounded-full transition-all",
+              paths[1] === "code-editor" && "bg-thirdnary",
             )}
           >
             <FaCode size={24} />
@@ -289,12 +317,14 @@ export default function PublicSidebar({
         </li>
         <li onClick={handleToggleMenu}>
           <Link
+            title="Private Server"
             to={`private-server`}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4 w-full cursor-pointer",
-              "text-xl text-white",
+              "px-4 py-2 w-full cursor-pointer",
+              "text-lg text-white",
               "hover:bg-thirdnary rounded-full transition-all",
+              paths[1] === "private-server" && "bg-thirdnary",
             )}
           >
             <FaServer size={24} />
@@ -303,13 +333,15 @@ export default function PublicSidebar({
         </li>
         <li onClick={handleToggleMenu}>
           <Link
+            title="Profile"
             to={"/profile"}
             className={cn(
               "flex justify-start items-center gap-4",
-              "p-4",
-              "text-xl text-white",
+              "px-4 py-2",
+              "text-lg text-white",
               "hover:bg-thirdnary rounded-full transition-all",
               "active:scale-95 active:bg-thirdnary",
+              paths[1] === "profile" && "bg-thirdnary",
             )}
           >
             <FaUser size={24} />

@@ -70,26 +70,6 @@ export default function Classroom() {
         const data = await showClassroom(id);
 
         setClassroom(data);
-
-        const combinedData = [
-          ...(data?.announcements || []).map((item) => ({
-            id: item.id,
-            name: item.title,
-            type: "announcement",
-          })),
-          ...(data?.assignments || []).map((item) => ({
-            id: item.id,
-            name: item.title,
-            type: "assignment",
-          })),
-          ...(data?.materials || []).map((item) => ({
-            id: item.id,
-            name: item.title,
-            type: "material",
-          })),
-        ];
-
-        localStorage.setItem("dynamicNavData", JSON.stringify(combinedData));
       } catch (error) {
         console.log("Gagal mengambil data kelas:", error);
       } finally {
