@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { cn } from "../../_utilities/cn";
 
-export default function ClassroomNav() {
+export default function ClassroomNav({ user }) {
   const { id } = useParams();
 
   const pathname = window.location.pathname;
@@ -54,6 +54,20 @@ export default function ClassroomNav() {
         )}
       >
         Member
+      </Link>
+      <Link
+        to={`/classrooms/${id}/assesments`}
+        replace
+        className={cn(
+          "w-fit h-fit",
+          "px-2 py-4 rounded-t-lg",
+          "hover:bg-gray-300 transition-all",
+          "border-b-4 border-transparent",
+          path === "assesments" && " border-thirdnary text-thirdnary",
+          user?.role === "praktikan" && "hidden",
+        )}
+      >
+        Assesment
       </Link>
     </nav>
   );

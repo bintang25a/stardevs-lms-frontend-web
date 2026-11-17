@@ -13,6 +13,9 @@ import Members from "./pages/public/member/Members";
 import Profile from "./pages/auth/Profile";
 import Dashboard from "./pages/public/panel/Dashboard";
 import Material from "./pages/public/material/Material";
+import Submission from "./pages/public/submission/Submission";
+import Submissions from "./pages/public/submission/Submissions";
+import Assesment from "./pages/public/assesment/Assesment";
 
 export default function App() {
   return (
@@ -31,8 +34,10 @@ export default function App() {
             <Route index element={<ControlPanel />} />
             <Route path="members" element={<Members />} />
             <Route path="assignments" element={<Assignments />} />
+            <Route path="assesments" element={<Assesment />} />
             <Route path="assignments/:assignmentId" element={<Assignment />} />
-            <Route path="submissions/:assignmentId" element={<Assignment />} />
+            <Route path="submissions" element={<Submissions />} />
+            <Route path="submissions/:submissionId" element={<Submission />} />
             <Route path="materials/:materialId" element={<Material />} />
           </Route>
           <Route path="profile" element={<Profile />} />

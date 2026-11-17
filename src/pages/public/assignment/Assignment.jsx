@@ -199,7 +199,7 @@ export default function Assignment() {
             </button>
 
             <Link
-              to={`/classrooms/${id}/submissions/${assignmentId}`}
+              to={`submissions`}
               className={cn(
                 "py-1.5 px-3",
                 "rounded-xl border border-primary",

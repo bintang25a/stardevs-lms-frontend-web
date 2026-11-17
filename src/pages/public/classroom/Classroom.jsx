@@ -126,7 +126,7 @@ export default function Classroom() {
         "z-10",
       )}
     >
-      <ClassroomNav />
+      <ClassroomNav user={user} />
       <Main />
       <Footer />
 
